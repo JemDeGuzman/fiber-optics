@@ -1,9 +1,20 @@
 {
-  "private": true,
-  "workspaces": ["apps/*", "packages/*"],
-  "scripts": {
-    "dev:mobile": "cd apps/mobile && expo start",
-    "dev:web": "cd apps/web && pnpm dev",
-    "storybook": "start-storybook -p 6006"
-  }
+"name": "project-root",
+"private": true,
+"version": "0.1.0",
+"workspaces": [
+"apps/*",
+"services/*",
+"packages/*"
+],
+"scripts": {
+"dev:api": "pnpm --filter services/api dev",
+"dev": "pnpm dev:api",
+"build": "pnpm -r build",
+"lint": "pnpm -r lint",
+"test": "pnpm -r test"
+},
+"devDependencies": {
+"concurrently": "^8.0.0"
+}
 }
