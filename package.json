@@ -1,0 +1,9 @@
+{
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "scripts": {
+    "dev:mobile": "cd apps/mobile && expo start",
+    "dev:web": "cd apps/web && pnpm dev",
+    "storybook": "start-storybook -p 6006"
+  }
+}
