@@ -1,0 +1,6 @@
+This file contains the changes I[Laurence]'ve made from the original commit
+
+- made this branch
+- npx create-expo-app@latest for [FiberOptics] folder
+- replaced [mobile] and [web] from [apps] with [FiberOptics]
+    - mag iisang web app / app development nlng with dynamic front end
