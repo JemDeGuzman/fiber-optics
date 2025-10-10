@@ -18,6 +18,7 @@ export default function ModalScreen() {
         <TextInput placeholder="Name" />
         <TextInput placeholder="Email" />
         <TextInput placeholder="Password" />
+        <TextInput placeholder="Repeat Password" />
       </View>
       <Button title="Register" onPress={() => {}} />
       {/* Use a light status bar on iOS to account for the black space above the modal */}
