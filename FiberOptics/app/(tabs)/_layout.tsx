@@ -37,16 +37,6 @@ export default function TabLayout() {
               <TouchableOpacity activeOpacity={0.5} style={styles.button}>
                 <Text style={styles.Text}>Register</Text>
               </TouchableOpacity>
-              {/* <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? "light"].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable> */}
             </Link>
           ),
         }}
