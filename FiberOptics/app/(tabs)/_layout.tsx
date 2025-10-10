@@ -1,7 +1,7 @@
 import React from "react";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { Link, Tabs } from "expo-router";
-import { Pressable } from "react-native";
+import { Text, Button, TouchableOpacity, StyleSheet } from "react-native";
 
 import Colors from "@/constants/Colors";
 import { useColorScheme } from "@/components/useColorScheme";
@@ -34,7 +34,10 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
           headerRight: () => (
             <Link href="/modal" asChild>
-              <Pressable>
+              <TouchableOpacity activeOpacity={0.5} style={styles.button}>
+                <Text style={styles.Text}>Register</Text>
+              </TouchableOpacity>
+              {/* <Pressable>
                 {({ pressed }) => (
                   <FontAwesome
                     name="info-circle"
@@ -43,7 +46,7 @@ export default function TabLayout() {
                     style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
                   />
                 )}
-              </Pressable>
+              </Pressable> */}
             </Link>
           ),
         }}
@@ -58,3 +61,18 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  button: {
+    backgroundColor: "Grey",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    elevation: 3, // adds shadow on Android
+  },
+  Text: {
+    color: "Blue",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+});

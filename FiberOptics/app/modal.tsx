@@ -15,7 +15,7 @@ export default function ModalScreen() {
         style={styles.separator}
         lightColor="#eee"
         darkColor="rgba(255,255,255,0.1)"
-      />
+      />  
       <View style={styles.form}>
         <TextInput placeholder="Name" />
         <TextInput placeholder="Email" />
