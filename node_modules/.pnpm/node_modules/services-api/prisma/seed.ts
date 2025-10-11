@@ -1,12 +1,4 @@
-// services/api/prisma/seed.ts -- runtime-safe direct import
-import path from "path";
-
-// Resolve the generated runtime folder inside this workspace
-const generatedClientPath = path.resolve(__dirname, "..", "node_modules", ".prisma", "client");
-
-// Require the runtime directly (bypass hoisted @prisma/client wrapper)
-const PrismaPkg: any = require(generatedClientPath);
-const PrismaClient = PrismaPkg.PrismaClient ?? PrismaPkg.default ?? PrismaPkg;
+import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 const classifications = ["Abaca", "Daratex", "Mixed"];

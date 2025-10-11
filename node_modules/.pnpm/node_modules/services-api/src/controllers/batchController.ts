@@ -1,16 +1,8 @@
-import path from "path";
-
-// Resolve the generated runtime folder inside this workspace
-const generatedClientPath = path.resolve(__dirname, "..", "node_modules", ".prisma", "client");
-
-// Require the runtime directly (bypass hoisted @prisma/client wrapper)
-const PrismaPkg: any = require(generatedClientPath);
-const PrismaClient = PrismaPkg.PrismaClient ?? PrismaPkg.default ?? PrismaPkg;
-const prisma = new PrismaClient();
-
 import { Request, Response } from "express";
-
+import { PrismaClient } from "@prisma/client";
 import { Parser } from "json2csv";
+
+const prisma = new PrismaClient();
 
 export async function createBatch(req: Request, res: Response) {
   const { name } = req.body;
@@ -70,4 +62,56 @@ export async function exportCsv(req: Request, res: Response) {
   res.setHeader("Content-Disposition", `attachment; filename=batch-${id}.csv`);
   res.setHeader("Content-Type", "text/csv");
   res.send(csv);
+}
+
+export async function createSample(req: Request, res: Response) {
+  try {
+    const batchId = Number(req.params.id);
+    if (!batchId || Number.isNaN(batchId)) {
+      return res.status(400).json({ error: "Invalid batch id" });
+    }
+
+    const {
+      classification,
+      luster_value,
+      roughness,
+      tensile_strength,
+      image_capture
+    } = req.body ?? {};
+
+    // Required field checks
+    if (!classification || typeof classification !== "string") {
+      return res.status(400).json({ error: "Missing or invalid field: classification" });
+    }
+
+    // Parse numeric fields if provided (allow strings that represent numbers)
+    const parseNullableNumber = (v: any): number | null => {
+      if (v === undefined || v === null || v === "") return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+    const lusterVal = parseNullableNumber(luster_value);
+    const roughnessVal = parseNullableNumber(roughness);
+    const tensileVal = parseNullableNumber(tensile_strength);
+
+    const sample = await prisma.dataSample.create({
+      data: {
+        batchId,
+        classification,
+        luster_value: lusterVal,
+        roughness: roughnessVal,
+        tensile_strength: tensileVal,
+        image_capture: image_capture ?? null,
+      }
+    });
+
+    return res.status(201).json({ sample });
+  } catch (err: any) {
+    console.error("createSample error:", err);
+    // Prisma client errors sometimes contain `code` or `meta`, include detail for debugging
+    return res.status(500).json({
+      error: "Internal server error",
+      detail: err?.message ?? String(err)
+    });
+  }
 }
