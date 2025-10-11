@@ -1,6 +1,14 @@
-const PrismaPkg: any = require("@prisma/client");
+// services/api/prisma/seed.ts -- runtime-safe direct import
+import path from "path";
+
+// Resolve the generated runtime folder inside this workspace
+const generatedClientPath = path.resolve(__dirname, "..", "node_modules", ".prisma", "client");
+
+// Require the runtime directly (bypass hoisted @prisma/client wrapper)
+const PrismaPkg: any = require(generatedClientPath);
 const PrismaClient = PrismaPkg.PrismaClient ?? PrismaPkg.default ?? PrismaPkg;
 const prisma = new PrismaClient();
+
 const classifications = ["Abaca", "Daratex", "Mixed"];
 
 function randFloat(min=0, max=1) { return +(Math.random()*(max-min)+min).toFixed(3); }

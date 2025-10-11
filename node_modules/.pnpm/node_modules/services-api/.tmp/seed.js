@@ -1,8 +1,7 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = require("@prisma/client");
-const prisma = new client_1.PrismaClient();
-const classifications = ["good", "bad", "uncertain"];
+const PrismaPkg = require("@prisma/client");
+const PrismaClient = PrismaPkg.PrismaClient ?? PrismaPkg.default ?? PrismaPkg;
+const prisma = new PrismaClient();
+const classifications = ["Abaca", "Daratex", "Mixed"];
 function randFloat(min = 0, max = 1) { return +(Math.random() * (max - min) + min).toFixed(3); }
 function randChoice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 async function main() {
