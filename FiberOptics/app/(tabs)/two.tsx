@@ -1,12 +1,10 @@
 import { StyleSheet, TouchableOpacity } from "react-native";
-
-import EditScreenInfo from "@/components/EditScreenInfo";
 import { Text, View } from "@/components/Themed";
 
 export default function TabTwoScreen() {
   return (
     <View style={styles.outerForm}>
-{/* left half is for user profile settings
+      {/* left half is for user profile settings
 -user profile [name, email, password, profile picture]
 -logout button
 -edit profile button */}
@@ -30,7 +28,7 @@ export default function TabTwoScreen() {
           </TouchableOpacity>
         </View>
       </View>
-{/* right half is for web/app settings
+      {/* right half is for web/app settings
 -light/dark mode
 -notification settings
 -link to device
@@ -38,6 +36,26 @@ export default function TabTwoScreen() {
       <View style={styles.innerForm}>
         <View style={styles.centerForm}>
           <Text style={styles.title}>App Settings</Text>
+        </View>
+        <View style={styles.spacedForm}>
+          <Text>Notifications</Text>
+          <TouchableOpacity activeOpacity={0.5} style={styles.button}>
+            <Text style={styles.Text}>{'▼'}</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.spacedForm}>
+          <Text>Link to Device</Text>
+          <TouchableOpacity activeOpacity={0.5} style={styles.button}>
+            <Text style={styles.Text}>{'▼'}</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.centerForm}>
+          <TouchableOpacity activeOpacity={0.5} style={styles.button}>
+            <Text style={styles.Text}>Light Mode</Text>
+          </TouchableOpacity>
+          <TouchableOpacity activeOpacity={0.5} style={styles.button}>
+            <Text style={styles.Text}>Dark Mode</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
@@ -115,6 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: "Grey",
     paddingVertical: 10,
     paddingHorizontal: 30,
+    marginHorizontal: 10,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: "Black",
