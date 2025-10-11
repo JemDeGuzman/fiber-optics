@@ -1,9 +1,12 @@
 import { StyleSheet, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
+import { useAppTheme } from "@/components/themeContext";
 
 export default function TabTwoScreen() {
+  const { mode, toggleTheme, colors } = useAppTheme();
+
   return (
-    <View style={styles.outerForm}>
+    <View style={[styles.outerForm, { backgroundColor: colors.background }]}>
       {/* left half is for user profile settings
 -user profile [name, email, password, profile picture]
 -logout button
@@ -33,37 +36,40 @@ export default function TabTwoScreen() {
 -notification settings
 -link to device
 -language */}
-      <View style={styles.innerForm}>
-        <View style={styles.centerForm}>
-          <Text style={styles.title}>App Settings</Text>
+      <View style={[styles.innerForm, { backgroundColor: colors.background }]}>
+        <View style={[styles.centerForm, { backgroundColor: colors.background }]}>
+          <Text style={[styles.title, { color: colors.text }]}>App Settings</Text>
         </View>
-        <View style={styles.spacedForm}>
-          <Text>Notifications</Text>
+        <View style={[styles.spacedForm, { backgroundColor: colors.background }]}>
+          <Text style={{ color: colors.text }}>Notifications</Text>
           <TouchableOpacity activeOpacity={0.5} style={styles.button}>
-            <Text style={styles.Text}>{'▼'}</Text>
+            <Text style={[styles.Text, { color: colors.text }]}>{"▼"}</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.spacedForm}>
-          <Text>Link to Device</Text>
+        <View style={[styles.spacedForm, { backgroundColor: colors.background }]}>
+          <Text style={{ color: colors.text }}>Link to Device</Text>
           <TouchableOpacity activeOpacity={0.5} style={styles.button}>
-            <Text style={styles.Text}>{'▼'}</Text>
+            <Text style={[styles.Text, { color: colors.text }]}>{"▼"}</Text>
           </TouchableOpacity>
         </View>
-        <View style={styles.centerForm}>
-          <TouchableOpacity activeOpacity={0.5} style={styles.button}>
-            <Text style={styles.Text}>Light Mode</Text>
+        <View style={[styles.centerForm, { backgroundColor: colors.background }]}>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            style={[styles.button, { backgroundColor: colors.primary }]}
+            onPress={() => toggleTheme("light")}
+          >
+            <Text style={[styles.Text, { color: colors.text }]}>Light Mode</Text>
           </TouchableOpacity>
-          <TouchableOpacity activeOpacity={0.5} style={styles.button}>
-            <Text style={styles.Text}>Dark Mode</Text>
+          <TouchableOpacity
+            activeOpacity={0.5}
+            style={[styles.button, { backgroundColor: colors.primary }]}
+            onPress={() => toggleTheme("dark")}
+          >
+            <Text style={[styles.Text, { color: colors.text }]}>Dark Mode</Text>
           </TouchableOpacity>
         </View>
       </View>
     </View>
-    // <View style={styles.container}>
-    //   <Text style={styles.title}>Tab Two</Text>
-    //   <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-    //   <EditScreenInfo path="app/(tabs)/two.tsx" />
-    // </View>
   );
 }
 
@@ -136,7 +142,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: "Black",
     elevation: 3, // adds shadow on Android
   },
   Text: {

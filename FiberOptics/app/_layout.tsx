@@ -9,6 +9,7 @@ import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
+import { AppThemeProvider } from "@/components/themeContext";
 
 import { useColorScheme } from "@/components/useColorScheme";
 
@@ -49,15 +50,17 @@ export default function RootLayout() {
   return <RootLayoutNav />;
 }
 
+
+
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+    <AppThemeProvider>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: "modal" }} />
       </Stack>
-    </ThemeProvider>
+    </AppThemeProvider>
   );
 }
