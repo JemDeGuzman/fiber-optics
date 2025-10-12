@@ -12,3 +12,7 @@ Castillo, Mark Laurence (SoftDes)
 Pajarillo, Steven Dale 
 
 Tayam, John Chester Irylle 
+
+!!! IMPORTANT !!!
+
+Once downloaded, 
