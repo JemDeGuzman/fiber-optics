@@ -37,8 +37,8 @@ export default function BottomTabsNavigator() {
         },
       })}
     >
-      <BottomTabs.Screen name="Current Sample" component={CurrentSampleScreen} />
       <BottomTabs.Screen name="Previous Samples" component={PreviousSamplesScreen} />
+      <BottomTabs.Screen name="Current Sample" component={CurrentSampleScreen} />
       <BottomTabs.Screen name="User Settings" component={SettingsScreen} />
     </BottomTabs.Navigator>
   );

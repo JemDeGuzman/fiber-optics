@@ -16,9 +16,9 @@ export default function TopTabsNavigator() {
         tabBarLabelStyle: { fontWeight: "600" },
       }}
     >
-      <TopTabs.Screen name="Current Sample" component={CurrentSampleScreen} />
-      <TopTabs.Screen name="Previous Samples" component={PreviousSamplesScreen} />
-      <TopTabs.Screen name="User Settings" component={SettingsScreen} />
+      <TopTabs.Screen name="Current Sample" component={CurrentSampleScreen} options={{ tabBarLabel: "Current Sample" }} />
+      <TopTabs.Screen name="Previous Samples" component={PreviousSamplesScreen} options={{ tabBarLabel: "Previous Samples" }} />
+      <TopTabs.Screen name="User Settings" component={SettingsScreen} options={{ tabBarLabel: "User Settings" }} />
     </TopTabs.Navigator>
   );
 }

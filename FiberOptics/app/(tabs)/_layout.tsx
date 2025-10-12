@@ -13,6 +13,7 @@ export default function TabsLayout() {
       {isLandscape && <Header />} {/* show header only in desktop/landscape */}
 
       <Tabs
+      initialRouteName="index"
         screenOptions={({ route }) => ({
           tabBarPosition: isMobile ? "bottom" : "top",
           tabBarShowLabel: true,
