@@ -1,11 +1,15 @@
 ﻿import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/auth";
-import batchRoutes from "./routes/batch";
+import batchesRoutes from "./routes/batch";
+import samplesRoutes from "./routes/samples";
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:3000", // your frontend
+  credentials: true,
+}));
 app.use(express.json());
 
 // simple health / root route for manual checks
@@ -13,8 +17,33 @@ app.get("/", (_req, res) => res.send("API is running!"));
 
 // mount API routes
 app.use("/api/auth", authRoutes);
+
+app.use("/api/batches", batchesRoutes);
+
+app.use("/api/samples", samplesRoutes);
+
 app.get("/api/ping", (_req, res) => res.json({ ok: true, ts: Date.now() }));
 
-app.use("/api/batches", batchRoutes);
+function listApiRoutes(appInstance: express.Application) {
+  console.log("==== Registered routes ====");
+  appInstance._router.stack.forEach((middleware: any) => {
+    if (middleware.route) { // Check if it's a route handler
+      const path = middleware.route.path;
+      const methods = Object.keys(middleware.route.methods).join(', ').toUpperCase();
+      console.log(`- ${methods} ${path}`);
+    } else if (middleware.name === 'router' && middleware.handle.stack) { // Check for nested routers
+      middleware.handle.stack.forEach((handler: any) => {
+        if (handler.route) {
+          const path = handler.route.path;
+          const methods = Object.keys(handler.route.methods).join(', ').toUpperCase();
+          console.log(`- ${methods} ${path}`);
+        }
+      });
+    }
+  });
+  console.log("===========================");
+}
+
+listApiRoutes(app);
 
 export default app;
