@@ -1,0 +1,93 @@
+# ============================================
+# Core Node.js + pnpm
+# ============================================
+node_modules/
+.pnpm-store/
+.pnp.*
+*.log
+*.tmp
+*.pid
+*.seed
+*.tsbuildinfo
+.DS_Store
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env
+.env.*
+!.env.example
+
+# ============================================
+# Build Outputs
+# ============================================
+dist/
+build/
+.next/
+out/
+coverage/
+.cache/
+.vercel/
+.next/static/
+.next/cache/
+.next/types/
+
+# ============================================
+# Prisma
+# ============================================
+/prisma/dev.db
+/prisma/*.db-journal
+/prisma/migrations/
+# Optional — keep migration SQL files if you want version control for them
+# !/prisma/migrations/*.sql
+
+# ============================================
+# IDE / Editor
+# ============================================
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# ============================================
+# Testing
+# ============================================
+/coverage/
+jest-cache/
+jest-report/
+
+# ============================================
+# OS Artifacts
+# ============================================
+Thumbs.db
+Desktop.ini
+
+# ============================================
+# Custom Local Configs
+# ============================================
+/services/api/node_modules/
+/services/api/dist/
+/services/api/.env
+/services/api/.env.*
+!/services/api/.env.example
+
+/services/frontend/node_modules/
+/services/frontend/.next/
+/services/frontend/.env
+/services/frontend/.env.*
+!/services/frontend/.env.example
+
+# ============================================
+# 🔒 Misc
+# ============================================
+*.pem
+*.key
+*.crt
+*.cert
