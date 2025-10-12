@@ -2,6 +2,7 @@
   "name": "services-api",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
@@ -10,6 +11,11 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
+    "postinstall": "pnpm exec prisma generate --schema=./prisma/schema.prisma",
+    "migrate:dev": "pnpm exec prisma migrate dev --schema=./prisma/schema.prisma",
+    "migrate:deploy": "pnpm exec prisma migrate deploy --schema=./prisma/schema.prisma",
+    "studio": "pnpm exec prisma studio --schema=./prisma/schema.prisma",
+    "seed": "pnpm exec ts-node --transpile-only prisma/seed.ts",
     "test": "echo \"No test specified\" && exit 0",
     "lint": "echo \"No lint specified\" && exit 0"
   },
@@ -34,5 +40,9 @@
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18",
+    "pnpm": ">=7"
   }
 }

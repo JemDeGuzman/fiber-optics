@@ -1,20 +1,24 @@
 {
-"name": "project-root",
-"private": true,
-"version": "0.1.0",
-"workspaces": [
-"apps/*",
-"services/*",
-"packages/*"
-],
-"scripts": {
-"dev:api": "pnpm --filter services/api dev",
-"dev": "pnpm dev:api",
-"build": "pnpm -r build",
-"lint": "pnpm -r lint",
-"test": "pnpm -r test"
-},
-"devDependencies": {
-"concurrently": "^8.0.0"
-}
+    "name": "project-root",
+    "private": true,
+    "version": "0.1.0",
+    "workspaces": [
+        "services/api",
+        "apps/web/web-frontend",
+        "apps/*",
+        "services/*",
+        "packages/*"
+    ],
+    "scripts": {
+        "install:all": "pnpm install",
+        "dev:api": "pnpm --filter services/api dev",
+        "dev:web": "pnpm --filter apps/web/web-frontend dev",
+        "dev": "concurrently \"pnpm --filter services/api dev\" \"pnpm --filter apps/web/web-frontend dev\"",
+        "build": "pnpm -r build",
+        "lint": "pnpm -r lint",
+        "test": "pnpm -r test"
+    },
+    "devDependencies": {
+        "concurrently": "^8.0.0"
+    }
 }
