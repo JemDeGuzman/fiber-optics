@@ -10,7 +10,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect } from "react";
 import "react-native-reanimated";
 import { AppThemeProvider } from "@/components/themeContext";
-
+import ResponsiveNavigator from "../app/navigation/DynamicNav";
 import { useColorScheme } from "@/components/useColorScheme";
 
 export {
