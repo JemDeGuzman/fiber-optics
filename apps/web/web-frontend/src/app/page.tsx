@@ -10,5 +10,16 @@ export default function Home() {
     router.push("/login");
   }, [router]);
 
-  return <div>Redirecting to login...</div>;
+  return (
+  <Html lang="en">
+      <Head>
+        <link rel="icon" href="/favicon.ico" />
+      </Head>
+      <body>
+        <Main />
+        <NextScript />
+      </body>
+    </Html>
+  <div>Redirecting to login...</div>;
+  );
 }

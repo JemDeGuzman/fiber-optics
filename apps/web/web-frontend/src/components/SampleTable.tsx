@@ -1,6 +1,6 @@
-// web-frontend/src/components/SampleTable.tsx
 "use client";
 import React, { useMemo } from "react";
+import styled from "styled-components";
 
 export interface SampleRow {
   id: number;
@@ -15,10 +15,67 @@ export interface SampleRow {
 interface Props {
   samples: SampleRow[];
   onUpdate: (id: number, patch: Partial<SampleRow>) => Promise<void>;
-  selectedIds?: number[]; // controlled selection across pages
+  selectedIds?: number[];
   onSelectionChange?: (ids: number[]) => void;
 }
 
+/* ===========================
+   STYLED COMPONENTS
+=========================== */
+const TableContainer = styled.div`
+  width: 100%;
+  overflow-x: auto;
+`;
+
+const TableEl = styled.table`
+  width: 100%;
+  border-collapse: collapse;
+  color: #EBE1BD;
+`;
+
+const Th = styled.th`
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #555;
+`;
+
+const Td = styled.td`
+  padding: 8px;
+  border-bottom: 1px solid #333;
+`;
+
+const Checkbox = styled.input`
+  width: 16px;
+  height: 16px;
+`;
+
+const Input = styled.input`
+  padding: 4px 6px;
+  border-radius: 6px;
+  border: 1px solid #3A4946;
+  background-color: #262626;
+  color: #EBE1BD;
+  width: 100%;
+`;
+
+const Button = styled.button<{ small?: boolean }>`
+  padding: ${({ small }) => (small ? "4px 8px" : "6px 10px")};
+  border-radius: 6px;
+  border: none;
+  background-color: #3A4946;
+  color: #EBE1BD;
+  cursor: pointer;
+  margin-right: 4px;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+`;
+
+/* ===========================
+   COMPONENT
+=========================== */
 export default function SampleTable({
   samples,
   onUpdate,
@@ -28,10 +85,8 @@ export default function SampleTable({
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [edited, setEdited] = React.useState<Partial<SampleRow>>({});
 
-  // local helper to check if id is selected (driven by selectedIds prop)
   const isSelected = (id: number) => selectedIds.includes(id);
 
-  // toggle selection for a single id
   const toggleSelect = (id: number) => {
     const next = isSelected(id)
       ? selectedIds.filter(i => i !== id)
@@ -39,7 +94,6 @@ export default function SampleTable({
     onSelectionChange?.(next);
   };
 
-  // toggle select all on current page
   const allSelected = useMemo(
     () => samples.length > 0 && samples.every(s => isSelected(s.id)),
     [samples, selectedIds]
@@ -47,11 +101,9 @@ export default function SampleTable({
 
   const toggleSelectAllOnPage = () => {
     if (allSelected) {
-      // remove page ids
       const next = selectedIds.filter(i => !samples.some(s => s.id === i));
       onSelectionChange?.(next);
     } else {
-      // add all page ids (avoid duplicates)
       const pageIds = samples.map(s => s.id);
       const merged = Array.from(new Set([...selectedIds, ...pageIds]));
       onSelectionChange?.(merged);
@@ -82,82 +134,73 @@ export default function SampleTable({
   };
 
   return (
-    <div>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
+    <TableContainer>
+      <TableEl>
         <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #ddd" }}>
-            <th><input type="checkbox" checked={allSelected} onChange={toggleSelectAllOnPage} /></th>
-            <th>ID</th>
-            <th>Classification</th>
-            <th>Luster</th>
-            <th>Roughness</th>
-            <th>Tensile</th>
-            <th>Image</th>
-            <th>Created</th>
-            <th></th>
+          <tr>
+            <Th><Checkbox type="checkbox" checked={allSelected} onChange={toggleSelectAllOnPage} /></Th>
+            <Th>ID</Th>
+            <Th>Classification</Th>
+            <Th>Luster</Th>
+            <Th>Roughness</Th>
+            <Th>Tensile</Th>
+            <Th>Image</Th>
+            <Th>Created</Th>
+            <Th></Th>
           </tr>
         </thead>
         <tbody>
           {samples.map(s => (
-            <tr key={s.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
-              <td style={{ padding: 8 }}>
-                <input
-                  type="checkbox"
-                  checked={isSelected(s.id)}
-                  onChange={() => toggleSelect(s.id)}
-                />
-              </td>
+            <tr key={s.id}>
+              <Td><Checkbox type="checkbox" checked={isSelected(s.id)} onChange={() => toggleSelect(s.id)} /></Td>
+              <Td>{s.id}</Td>
 
-              <td style={{ padding: 8 }}>{s.id}</td>
-
-              <td style={{ padding: 8 }}>
+              <Td>
                 {editingId === s.id ? (
-                  <input value={(edited.classification as string) ?? ""} onChange={(e)=> setEdited({...edited, classification: e.target.value})} />
+                  <Input value={(edited.classification as string) ?? ""} onChange={e => setEdited({ ...edited, classification: e.target.value })} />
                 ) : s.classification}
-              </td>
+              </Td>
 
-              <td style={{ padding: 8 }}>
+              <Td>
                 {editingId === s.id ? (
-                  <input value={edited.luster_value ?? ""} onChange={(e)=> setEdited({...edited, luster_value: e.target.value === "" ? null : Number(e.target.value)})} />
+                  <Input value={edited.luster_value ?? ""} onChange={e => setEdited({ ...edited, luster_value: e.target.value === "" ? null : Number(e.target.value) })} />
                 ) : String(s.luster_value ?? "")}
-              </td>
+              </Td>
 
-              <td style={{ padding: 8 }}>
+              <Td>
                 {editingId === s.id ? (
-                  <input value={edited.roughness ?? ""} onChange={(e)=> setEdited({...edited, roughness: e.target.value === "" ? null : Number(e.target.value)})} />
+                  <Input value={edited.roughness ?? ""} onChange={e => setEdited({ ...edited, roughness: e.target.value === "" ? null : Number(e.target.value) })} />
                 ) : String(s.roughness ?? "")}
-              </td>
+              </Td>
 
-              <td style={{ padding: 8 }}>
+              <Td>
                 {editingId === s.id ? (
-                  <input value={edited.tensile_strength ?? ""} onChange={(e)=> setEdited({...edited, tensile_strength: e.target.value === "" ? null : Number(e.target.value)})} />
+                  <Input value={edited.tensile_strength ?? ""} onChange={e => setEdited({ ...edited, tensile_strength: e.target.value === "" ? null : Number(e.target.value) })} />
                 ) : String(s.tensile_strength ?? "")}
-              </td>
+              </Td>
 
-              <td style={{ padding: 8 }}>
+              <Td>
                 {editingId === s.id ? (
-                  <input value={edited.image_capture ?? ""} onChange={(e)=> setEdited({...edited, image_capture: e.target.value})} />
+                  <Input value={edited.image_capture ?? ""} onChange={e => setEdited({ ...edited, image_capture: e.target.value })} />
                 ) : s.image_capture}
-              </td>
+              </Td>
 
-              <td style={{ padding: 8 }}>{new Date(s.createdAt).toLocaleString()}</td>
+              <Td>{new Date(s.createdAt).toLocaleString()}</Td>
 
-              <td style={{ padding: 8 }}>
+              <Td>
                 {editingId === s.id ? (
                   <>
-                    <button onClick={saveEdit}>Save</button>
-                    <button onClick={cancelEdit}>Cancel</button>
+                    <Button small onClick={saveEdit}>Save</Button>
+                    <Button small onClick={cancelEdit}>Cancel</Button>
                   </>
                 ) : (
-                  <>
-                    <button onClick={() => startEdit(s)}>Edit</button>
-                  </>
+                  <Button small onClick={() => startEdit(s)}>Edit</Button>
                 )}
-              </td>
+              </Td>
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+      </TableEl>
+    </TableContainer>
   );
 }
