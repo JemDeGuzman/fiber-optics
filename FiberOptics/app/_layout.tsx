@@ -6,7 +6,7 @@ import "react-native-reanimated";
 import { AppThemeProvider } from "@/components/themeContext";
 import { useColorScheme } from "@/components/useColorScheme";
 import { View, ActivityIndicator } from "react-native";
-import { Slot, Redirect } from "expo-router"; // ✅ import Redirect
+import { Slot, Redirect, Stack } from "expo-router"; // ✅ import Redirect
 
 export { ErrorBoundary } from "expo-router";
 

@@ -2,7 +2,7 @@ import { StyleSheet, TouchableOpacity } from "react-native";
 import { Text, View } from "@/components/Themed";
 import { useAppTheme } from "@/components/themeContext";
 
-export default function TabTwoScreen() {
+export default function UserScreen() {
   const { mode, toggleTheme, colors } = useAppTheme();
 
   return (

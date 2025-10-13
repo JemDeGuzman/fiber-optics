@@ -1,4 +1,4 @@
-import { Tabs } from "expo-router";
+import { Stack, Tabs } from "expo-router";
 import { Platform, useWindowDimensions } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import Header from "../../components/Header";
@@ -14,7 +14,8 @@ export default function TabsLayout() {
 
       <Tabs
       initialRouteName="index"
-        screenOptions={({ route }) => ({
+      screenOptions={({ route }) => ({
+          headerShown: false,
           tabBarPosition: isMobile ? "bottom" : "top",
           tabBarShowLabel: true,
           tabBarIndicatorStyle: { backgroundColor: "#007aff" },
@@ -51,16 +52,16 @@ export default function TabsLayout() {
         })}
       >
         <Tabs.Screen
-          name="previous"
-          options={{ title: "Previous Samples", headerShown: false }}
+          name="Files"
+          options={{ headerShown: false, title: "Previous Samples" }}
         />
         <Tabs.Screen
           name="index"
-          options={{ title: "Current Sample", headerShown: false }}
+          options={{ headerShown: false, title: "Current Sample" }}
         />
         <Tabs.Screen
-          name="settings"
-          options={{ title: "User Settings", headerShown: false }}
+          name="User"
+          options={{ headerShown: false, title: "User Settings" }}
         />
       </Tabs>
     </>
