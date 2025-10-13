@@ -11,15 +11,6 @@ export default function Home() {
   }, [router]);
 
   return (
-  <Html lang="en">
-      <Head>
-        <link rel="icon" href="/favicon.ico" />
-      </Head>
-      <body>
-        <Main />
-        <NextScript />
-      </body>
-    </Html>
-  <div>Redirecting to login...</div>;
+      <div>Redirecting to login...</div>
   );
 }

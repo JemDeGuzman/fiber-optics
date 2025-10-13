@@ -37,5 +37,7 @@ pnpm dev // launches backend, wait for API listening on http://localhost:4000
 at apps/web/web-frontend:
 pnpm add react react-dom next swr axios
 pnpm add -D typescript @types/react @types/node
+pnpm install styled-components
+pnpm install -D @types/styled-components
 
 pnpm dev // launches frontend, wait for Local: http://localhost:3000 Network: http://xx.xx.x.xx:3000
