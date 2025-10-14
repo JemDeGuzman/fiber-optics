@@ -23,7 +23,7 @@ pnpm install
 
 at infra:
 docker compose build
-docker compose up
+docker 
 
 at services/api:
 pnpm install
