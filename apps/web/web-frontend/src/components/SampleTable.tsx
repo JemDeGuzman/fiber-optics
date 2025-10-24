@@ -99,7 +99,7 @@ export default function SampleTable({
     [samples, selectedIds]
   );
 
-  const toggleSelectAllOnPage = () => {
+  const toggleSelectAllOnPage = (e?: React.ChangeEvent<HTMLInputElement>) => {
     if (allSelected) {
       const next = selectedIds.filter(i => !samples.some(s => s.id === i));
       onSelectionChange?.(next);

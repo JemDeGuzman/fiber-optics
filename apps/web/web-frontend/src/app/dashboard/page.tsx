@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import SampleTable, { SampleRow } from "@/components/SampleTable";
 import ClassificationPie from "@/components/ClassificationPie";
 import styled, { createGlobalStyle } from "styled-components";
@@ -115,6 +115,28 @@ const StatsWrapper = styled.div`
   flex: 1;
 `;
 
+/* Modal styles for scanner */
+const ModalOverlay = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+`;
+
+const ModalContent = styled.div`
+  background: #1f1f1f;
+  padding: 20px;
+  border-radius: 12px;
+  color: #EBE1BD;
+  width: 90%;
+  max-width: 480px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+`;
+
 export default function Dashboard(): React.JSX.Element {
   const [currentUser, setCurrentUser] = useState<{ id:number; email:string; name?:string } | null>(null);
   const [batches, setBatches] = useState<Batch[]>([]);
@@ -129,6 +151,13 @@ export default function Dashboard(): React.JSX.Element {
   const [newBatchName, setNewBatchName] = useState<string>("");
   const [editBatchName, setEditBatchName] = useState<string>("");
   const [selectedSampleIds, setSelectedSampleIds] = useState<number[]>([]);
+
+  // scanner state
+  const [showScanner, setShowScanner] = useState(false);
+  const [scanMessage, setScanMessage] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
+  const scannerRef = useRef<any | null>(null);
+  const readerElemId = "html5qr-reader";
 
   const getAuthHeaders = (): Record<string,string> => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -305,6 +334,159 @@ export default function Dashboard(): React.JSX.Element {
   const exportAllCsv = async () => { if (!selectedBatch) return; const url = `${API}/api/batches/${selectedBatch}/export`; const resp = await fetch(url); if (!resp.ok) { alert("Export failed"); return; } const blob = await resp.blob(); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `batch-${selectedBatch}-all.csv`; a.click(); URL.revokeObjectURL(a.href); };
   const exportSelectedCsv = async () => { if (!selectedBatch || selectedSampleIds.length === 0) return; const resp = await fetch(`${API}/api/batches/${selectedBatch}/export`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: selectedSampleIds }) }); if (!resp.ok) { alert("Selected export failed"); return; } const blob = await resp.blob(); const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = `batch-${selectedBatch}-selected.csv`; a.click(); URL.revokeObjectURL(a.href); };
 
+  // ---------- QR Scanner handling ----------
+  // Attempt to POST the scanned payload to the Pi capture-server /connect endpoint.
+  // We try to auto-detect a Pi host inside the scanned JSON (common keys), otherwise prompt user.
+  const tryLinkPi = async (payload: any) => {
+    // payload: parsed JSON from QR
+    // prefer explicit pi host fields if present
+    const candidateKeys = [
+      "piHost","piBase","captureServer","capture_host","capture_url",
+      "piUrl","pi_url","host","server","capture","backendUrl","backend","url"
+    ];
+
+    let targetBase: string | null = null;
+
+    // if payload contains exact "piHost" use it first
+    for (const k of candidateKeys) {
+      const v = payload[k];
+      if (!v) continue;
+      const s = String(v).trim();
+      // skip empty strings
+      if (!s) continue;
+      // if it looks like a URL (http/https) accept it
+      if (/^https?:\/\//i.test(s)) {
+        targetBase = s.replace(/\/$/, "");
+        break;
+      }
+      // if it's just an IP/host:port, coerce to http
+      if (/^[\d.]+(:\d+)?$/.test(s) || /^[a-z0-9.-]+(:\d+)?$/i.test(s)) {
+        targetBase = (s.startsWith("http") ? s : `http://${s}`).replace(/\/$/, "");
+        break;
+      }
+    }
+
+    // As a last-resort, if the QR contains a "backendUrl" we still might use that as info,
+    // but we need the Pi endpoint to POST to; so prompt the user for Pi's address.
+    if (!targetBase) {
+      // prompt the user (fall back to manual entry)
+      const manual = window.prompt("Pi host not found in QR. Enter capture-server base URL (e.g. http://192.168.1.123:3001):");
+      if (!manual) {
+        setScanMessage("No Pi host provided - cancelled.");
+        return false;
+      }
+      targetBase = manual.replace(/\/$/, "");
+    }
+
+    const connectUrl = `${targetBase}/connect`;
+    setScanMessage(`Connecting to ${connectUrl}...`);
+    try {
+      const resp = await fetch(connectUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const isJson = (resp.headers.get("content-type") || "").includes("application/json");
+      const body = isJson ? await resp.json() : await resp.text();
+
+      if (!resp.ok) {
+        console.error("connect failed", resp.status, body);
+        setScanMessage(`Connect failed: ${resp.status} ${typeof body === "string" ? body : JSON.stringify(body)}`);
+        return false;
+      }
+
+      setScanMessage("Connected successfully ✅");
+      // Optionally: refresh batches to reflect any new connection state
+      await fetchBatches();
+      // close scanner after a short delay so user sees success
+      setTimeout(() => setShowScanner(false), 900);
+      return true;
+    } catch (err) {
+      console.error("connect error", err);
+      setScanMessage("Connect request failed: " + String(err));
+      return false;
+    }
+  };
+
+  // ---------- html5-qrcode integration ----------
+  useEffect(() => {
+    // start scanner when modal opens
+    let mounted = true;
+    let instance: any = null;
+
+    const startScanner = async () => {
+      if (!showScanner) return;
+      setScanMessage("Initializing camera...");
+      try {
+        const mod = await import("html5-qrcode");
+        const { Html5Qrcode } = mod;
+        if (!mounted) return;
+        // create instance targeting div id
+        instance = new Html5Qrcode(readerElemId, /* verbose= */ false);
+        scannerRef.current = instance;
+
+        const config = { fps: 10, qrbox: { width: 280, height: 280 } };
+
+        await instance.start(
+          // camera config - prefer environment (rear) camera
+          { facingMode: "environment" } as any,
+          config,
+          async (decodedText: string, decodedResult: any) => {
+            if (!decodedText) return;
+            setScanMessage("QR scanned, processing...");
+            setScanning(true);
+            try {
+              // parse payload
+              let parsed: any;
+              try {
+                parsed = JSON.parse(decodedText);
+              } catch (e) {
+                setScanMessage("Scanned value is not JSON: " + decodedText.slice(0, 200));
+                setScanning(false);
+                return;
+              }
+
+              const ok = await tryLinkPi(parsed);
+              setScanning(false);
+              if (ok) {
+                setScanMessage("Linked!");
+                // stop scanner - tryLinkPi will close modal shortly
+                try { await instance.stop(); } catch (e) { /* ignore */ }
+              }
+            } catch (err) {
+              console.error("scan callback error", err);
+              setScanMessage("Scan handling error: " + String(err));
+              setScanning(false);
+            }
+          },
+          (errorMessage: string) => {
+            // camera frame decode errors - ignore or log
+            // console.debug("QR decode frame error", errorMessage);
+          }
+        );
+
+        setScanMessage("Point your camera at the Pi's QR code");
+      } catch (err: any) {
+        console.error("html5-qrcode start error", err);
+        setScanMessage("Camera init error: " + (err?.message ?? String(err)));
+      }
+    };
+
+    startScanner();
+
+    return () => {
+      mounted = false;
+      if (scannerRef.current) {
+        try {
+          scannerRef.current.stop().catch(() => {});
+        } catch (e) {}
+        scannerRef.current = null;
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showScanner]);
+
   return (
     <Wrapper>
       <GlobalReset />
@@ -320,10 +502,10 @@ export default function Dashboard(): React.JSX.Element {
               <span style={{ marginRight: 12 }}>
                 Signed in as <strong>{currentUser.name ?? currentUser.email}</strong>
               </span>
-              <Button onClick={() => { 
-                localStorage.removeItem("token"); 
-                setCurrentUser(null); 
-                window.location.href = "/login"; 
+              <Button onClick={() => {
+                localStorage.removeItem("token");
+                setCurrentUser(null);
+                window.location.href = "/login";
               }}>Logout</Button>
             </>
           ) : <a href="/login">Login</a>}
@@ -351,12 +533,15 @@ export default function Dashboard(): React.JSX.Element {
           <Button onClick={() => selectedBatch && fetchSamplesAndStats(selectedBatch)} disabled={!selectedBatch}>Reload Samples</Button>
         </ToolbarSection>
 
-        {/* Right section: Data Export */}
+        {/* Right section: Data Export + Scanner */}
         <ToolbarSection>
           <Button onClick={exportPageCsv} disabled={!selectedBatch}>Export Page</Button>
           <Button onClick={exportAllCsv} disabled={!selectedBatch}>Export All</Button>
           <Button onClick={exportSelectedCsv} disabled={!selectedBatch || selectedSampleIds.length === 0}>Export Selected</Button>
           <Button onClick={deleteSelectedSamples} disabled={selectedSampleIds.length === 0}>Delete Selected</Button>
+
+          {/* Scanner trigger */}
+          <Button onClick={() => { setScanMessage(null); setShowScanner(true); }}>Scan QR</Button>
         </ToolbarSection>
       </Toolbar>
 
@@ -399,6 +584,42 @@ export default function Dashboard(): React.JSX.Element {
           ) : <p>Loading stats...</p>}
         </StatsWrapper>
       </TableStatsWrapper>
+
+      {/* Scanner modal */}
+      {showScanner && (
+        <ModalOverlay onClick={() => setShowScanner(false)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <h3 style={{ marginBottom: 8 }}>Scan Pi QR to connect</h3>
+            <p style={{ color: "#C3C8C7", marginBottom: 12 }}>{scanMessage ?? "Point your camera at the Pi's QR code"}</p>
+
+            <div id={readerElemId} style={{ width: "100%", maxWidth: 400, margin: "0 auto" }} />
+
+            <div style={{ display: "flex", gap: 8, justifyContent: "center", marginTop: 12 }}>
+              <Button onClick={async () => {
+                // manual retry: stop if running then re-open scanner
+                try {
+                  if (scannerRef.current) {
+                    await scannerRef.current.stop();
+                    scannerRef.current = null;
+                  }
+                } catch (e) { /* ignore */ }
+                setScanMessage("Retrying...");
+                // small delay to allow stop to complete
+                setTimeout(() => setShowScanner(true), 250);
+              }}>Retry</Button>
+
+              <Button onClick={() => {
+                // close and cleanup
+                (async () => {
+                  try { if (scannerRef.current) await scannerRef.current.stop(); } catch (e) {}
+                  scannerRef.current = null;
+                  setShowScanner(false);
+                })();
+              }}>Close</Button>
+            </div>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </Wrapper>
   );
 }

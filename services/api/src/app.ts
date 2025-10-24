@@ -1,5 +1,6 @@
 ﻿import express from "express";
 import cors from "cors";
+import path from "path"
 import authRoutes from "./routes/auth";
 import batchesRoutes from "./routes/batch";
 import samplesRoutes from "./routes/samples";
@@ -21,6 +22,10 @@ app.use("/api/auth", authRoutes);
 app.use("/api/batches", batchesRoutes);
 
 app.use("/api/samples", samplesRoutes);
+
+const UPLOAD_DIR = path.resolve(__dirname, "../../uploads");
+console.log("STATIC UPLOAD_DIR (express.static) ->", UPLOAD_DIR);
+app.use("/uploads", express.static(UPLOAD_DIR));
 
 app.get("/api/ping", (_req, res) => res.json({ ok: true, ts: Date.now() }));
 
