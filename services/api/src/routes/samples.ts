@@ -14,7 +14,7 @@ type MulterRequest<TFile = Express.Multer.File> = Omit<Request, "file"> & {
 };
 /* ------------------------ Upload config ------------------------ */
 const UPLOAD_DIR = path.resolve(__dirname, "../../../uploads");
-console.log("MULTER UPLOAD_DIR ->", UPLOAD_DIR);
+//console.log("MULTER UPLOAD_DIR ->", UPLOAD_DIR);
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const storage = multer.diskStorage({

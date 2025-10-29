@@ -155,7 +155,7 @@ export default function Dashboard(): React.JSX.Element {
   // scanner state
   const [showScanner, setShowScanner] = useState(false);
   const [scanMessage, setScanMessage] = useState<string | null>(null);
-  const [scanning, setScanning] = useState(false);
+  const [, setScanning] = useState(false);
   const scannerRef = useRef<any | null>(null);
   const readerElemId = "html5qr-reader";
 
@@ -432,7 +432,7 @@ export default function Dashboard(): React.JSX.Element {
           // camera config - prefer environment (rear) camera
           { facingMode: "environment" } as any,
           config,
-          async (decodedText: string, decodedResult: any) => {
+          async (decodedText: string, _decodedResult: any) => {
             if (!decodedText) return;
             setScanMessage("QR scanned, processing...");
             setScanning(true);
@@ -460,9 +460,9 @@ export default function Dashboard(): React.JSX.Element {
               setScanning(false);
             }
           },
-          (errorMessage: string) => {
+          (_errorMessage: string) => {
             // camera frame decode errors - ignore or log
-            // console.debug("QR decode frame error", errorMessage);
+            // console.debug("QR decode frame error", _errorMessage);
           }
         );
 
@@ -516,10 +516,10 @@ export default function Dashboard(): React.JSX.Element {
       <Toolbar>
         {/* Left section: Batch Creation & Selection */}
         <ToolbarSection>
-          <Input placeholder="New batch" value={newBatchName} onChange={e => setNewBatchName(e.target.value)} />
+          <Input placeholder="New batch" value={newBatchName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setNewBatchName(e.target.value)} />
           <Button onClick={handleAddBatch}>Add</Button>
           <Button onClick={fetchBatches}>Reload</Button>
-          <Select value={selectedBatch ?? ""} onChange={e => setSelectedBatch(Number(e.target.value))}>
+          <Select value={selectedBatch ?? ""} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedBatch(Number(e.target.value))}>
             <option value="" disabled>Select Batch</option>
             {batches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
           </Select>
@@ -527,7 +527,7 @@ export default function Dashboard(): React.JSX.Element {
 
         {/* Middle section: Batch Editing */}
         <ToolbarSection>
-          <Input value={editBatchName} onChange={e => setEditBatchName(e.target.value)} />
+          <Input value={editBatchName} onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEditBatchName(e.target.value)} />
           <Button onClick={handleUpdateBatch} disabled={!selectedBatch}>Update</Button>
           <Button onClick={handleDeleteBatch} disabled={!selectedBatch}>Delete</Button>
           <Button onClick={() => selectedBatch && fetchSamplesAndStats(selectedBatch)} disabled={!selectedBatch}>Reload Samples</Button>
@@ -563,7 +563,7 @@ export default function Dashboard(): React.JSX.Element {
             <Button onClick={() => gotoPage(page + 1)} disabled={page >= totalPages}>Next</Button>
             <label style={{ marginLeft: 12 }}>
               Show
-              <Select value={limit} onChange={(e) => changeLimit(Number(e.target.value))} style={{ marginLeft: 6 }}>
+              <Select value={limit} onChange={(e: React.ChangeEvent<HTMLSelectElement>) => changeLimit(Number(e.target.value))} style={{ marginLeft: 6 }}>
                 <option value={10}>10</option>
                 <option value={25}>25</option>
                 <option value={50}>50</option>
@@ -588,7 +588,7 @@ export default function Dashboard(): React.JSX.Element {
       {/* Scanner modal */}
       {showScanner && (
         <ModalOverlay onClick={() => setShowScanner(false)}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
+          <ModalContent onClick={(e: React.MouseEvent<HTMLDivElement>) => e.stopPropagation()}>
             <h3 style={{ marginBottom: 8 }}>Scan Pi QR to connect</h3>
             <p style={{ color: "#C3C8C7", marginBottom: 12 }}>{scanMessage ?? "Point your camera at the Pi's QR code"}</p>
 

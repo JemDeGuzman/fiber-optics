@@ -24,7 +24,7 @@ app.use("/api/batches", batchesRoutes);
 app.use("/api/samples", samplesRoutes);
 
 const UPLOAD_DIR = path.resolve(__dirname, "../../uploads");
-console.log("STATIC UPLOAD_DIR (express.static) ->", UPLOAD_DIR);
+//console.log("STATIC UPLOAD_DIR (express.static) ->", UPLOAD_DIR);
 app.use("/uploads", express.static(UPLOAD_DIR));
 
 app.get("/api/ping", (_req, res) => res.json({ ok: true, ts: Date.now() }));
@@ -49,6 +49,8 @@ function listApiRoutes(appInstance: express.Application) {
   console.log("===========================");
 }
 
-listApiRoutes(app);
+// listApiRoutes(app);
+
+app.get('/health', (_req, res) => res.status(200).json({status: 'ok'}));
 
 export default app;
