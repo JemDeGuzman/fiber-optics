@@ -23,11 +23,11 @@ pnpm install
 
 at infra:
 docker compose build
-docker 
+docker start edeed51f430ac1cea1dbb6837d6a673bbaaa171a6d68be5a0284bba981a20b34
 
 at services/api:
 pnpm install
-// Create a .env file, copy .env.example, ask Jem for JWT_SECRET
+// Crea te a .env file, copy .env.example, ask Jem for JWT_SECRET
 
 pnpm add @prisma/client
 npx prisma generate --schema=./prisma/schema.prisma
