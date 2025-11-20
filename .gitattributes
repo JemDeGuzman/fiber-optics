@@ -1,0 +1,13 @@
+# Enforce LF for code files
+*.js text eol=lf
+*.ts text eol=lf
+*.tsx text eol=lf
+*.json text eol=lf
+*.yml text eol=lf
+*.yaml text eol=lf
+*.sh text eol=lf
+
+# Binary or OS-specific files
+*.exe binary
+*.png binary
+*.jpg binary

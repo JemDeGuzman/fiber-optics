@@ -1,0 +1,36 @@
+@startuml test
+
+' Hide methods and only show fields
+hide methods
+hide stereotypes
+
+entity "User" as User {
+  + id : Int <<PK>>
+  + email : String <<UQ>>
+  + password : String
+  + name : String?
+  + createdAt : DateTime
+}
+
+entity "DataBatch" as DataBatch {
+  + id : Int <<PK>>
+  + name : String
+  + createdAt : DateTime
+}
+
+entity "DataSample" as DataSample {
+  + id : Int <<PK>>
+  + batchId : Int <<FK>>
+  + image_capture : String
+  + classification : String
+  + luster_value : Float?
+  + roughness : Float?
+  + tensile_strength : Float?
+  + createdAt : DateTime
+}
+
+' Relationships
+DataBatch ||--o{ DataSample : "has many"
+DataSample }o--|| DataBatch : "belongs to"
+
+@enduml
