@@ -4,6 +4,7 @@ import path from "path"
 import authRoutes from "./routes/auth";
 import batchesRoutes from "./routes/batch";
 import samplesRoutes from "./routes/samples";
+import devicesRoutes from "./routes/devices";
 
 const app = express();
 
@@ -22,6 +23,8 @@ app.use("/api/auth", authRoutes);
 app.use("/api/batches", batchesRoutes);
 
 app.use("/api/samples", samplesRoutes);
+
+app.use("/api/devices", devicesRoutes);
 
 const UPLOAD_DIR = path.resolve(__dirname, "../../uploads");
 //console.log("STATIC UPLOAD_DIR (express.static) ->", UPLOAD_DIR);

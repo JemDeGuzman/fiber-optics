@@ -2,6 +2,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import SampleTable, { SampleRow } from "@/components/SampleTable";
 import ClassificationPie from "@/components/ClassificationPie";
+import DeviceConnectorModal from "@/components/DeviceConnectorModal";
 import styled, { createGlobalStyle } from "styled-components";
 
 interface Batch {
@@ -159,6 +160,11 @@ export default function Dashboard(): React.JSX.Element {
   const scannerRef = useRef<any | null>(null);
   const readerElemId = "html5qr-reader";
 
+  // device connection state
+  const [showDeviceConnector, setShowDeviceConnector] = useState(false);
+  const [currentDeviceIp, setCurrentDeviceIp] = useState<string>("Loading...");
+  const [connectedDevices, setConnectedDevices] = useState<any[]>([]);
+
   const getAuthHeaders = (): Record<string,string> => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -192,7 +198,64 @@ export default function Dashboard(): React.JSX.Element {
     }
   };
 
-  useEffect(() => { fetchBatches(); }, []);
+  // Fetch this device's IP
+  const fetchDeviceInfo = async () => {
+    try {
+      const res = await fetch(`${API}/api/devices/info`);
+      if (res.ok) {
+        const data = await res.json();
+        setCurrentDeviceIp(data.deviceIp || "localhost");
+      }
+    } catch (err) {
+      console.error("Failed to fetch device info:", err);
+    }
+  };
+
+  // Connect to remote device
+  const handleConnectToDevice = async (remoteDeviceIp: string): Promise<boolean> => {
+    try {
+      // Register the remote device locally on THIS server
+      const response = await fetch(`${API}/api/devices/register`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          remoteIp: remoteDeviceIp,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error("Registration failed:", response.status);
+        return false;
+      }
+
+      const data = await response.json();
+      console.log("✓ Remote device registered locally:", data);
+      
+      // Fetch updated device list
+      await fetchConnectedDevices();
+      return true;
+    } catch (err) {
+      console.error("Connection error:", err);
+      return false;
+    }
+  };
+
+  const fetchConnectedDevices = async () => {
+    try {
+      const res = await fetch(`${API}/api/devices/list`);
+      if (res.ok) {
+        const data = await res.json();
+        setConnectedDevices(data.devices || []);
+      }
+    } catch (err) {
+      console.error("Failed to fetch devices:", err);
+    }
+  };
+
+  useEffect(() => { 
+    fetchBatches();
+    fetchDeviceInfo();
+  }, []);
   useEffect(() => {
     if (selectedBatch) {
       setPage(1);
@@ -533,7 +596,7 @@ export default function Dashboard(): React.JSX.Element {
           <Button onClick={() => selectedBatch && fetchSamplesAndStats(selectedBatch)} disabled={!selectedBatch}>Reload Samples</Button>
         </ToolbarSection>
 
-        {/* Right section: Data Export + Scanner */}
+        {/* Right section: Data Export + Scanner + Device Connector */}
         <ToolbarSection>
           <Button onClick={exportPageCsv} disabled={!selectedBatch}>Export Page</Button>
           <Button onClick={exportAllCsv} disabled={!selectedBatch}>Export All</Button>
@@ -542,6 +605,9 @@ export default function Dashboard(): React.JSX.Element {
 
           {/* Scanner trigger */}
           <Button onClick={() => { setScanMessage(null); setShowScanner(true); }}>Scan QR</Button>
+
+          {/* Device Connector trigger */}
+          <Button onClick={() => setShowDeviceConnector(true)}>🔗 Connect Device</Button>
         </ToolbarSection>
       </Toolbar>
 
@@ -607,7 +673,6 @@ export default function Dashboard(): React.JSX.Element {
                 // small delay to allow stop to complete
                 setTimeout(() => setShowScanner(true), 250);
               }}>Retry</Button>
-
               <Button onClick={() => {
                 // close and cleanup
                 (async () => {
@@ -619,6 +684,15 @@ export default function Dashboard(): React.JSX.Element {
             </div>
           </ModalContent>
         </ModalOverlay>
+      )}
+
+      {/* Device Connector Modal */}
+      {showDeviceConnector && (
+        <DeviceConnectorModal
+          currentDeviceIp={currentDeviceIp}
+          onConnect={handleConnectToDevice}
+          onClose={() => setShowDeviceConnector(false)}
+        />
       )}
     </Wrapper>
   );

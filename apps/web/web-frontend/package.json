@@ -3,7 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "setup-env": "node setup-env.js",
+    "dev": "npm run setup-env && next dev",
     "build": "next build",
     "start": "next start",
     "jest-test": "jest",

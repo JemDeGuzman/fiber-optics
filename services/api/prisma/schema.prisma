@@ -27,7 +27,8 @@ model DataSample {
   id             Int       @id @default(autoincrement())
   batchId        Int
   batch          DataBatch @relation(fields: [batchId], references: [id])
-  image_capture  String    // url or filename
+  image_capture  String    // deprecated: use images relationship instead
+  images         ImageCapture[] // new: multiple images per sample
   classification String    // e.g. "good", "bad", "unknown", etc.
   luster_value   Float?
   roughness      Float?
@@ -35,4 +36,15 @@ model DataSample {
   createdAt      DateTime  @default(now())
 
   @@index([batchId])
+}
+
+model ImageCapture {
+  id        Int       @id @default(autoincrement())
+  sampleId  Int
+  sample    DataSample @relation(fields: [sampleId], references: [id], onDelete: Cascade)
+  fileName  String?   // original filename (sample.jpg, DoLP.png, etc.)
+  imageUrl  String    // url to the image
+  createdAt DateTime  @default(now())
+
+  @@index([sampleId])
 }
