@@ -29,10 +29,10 @@ class FiberDataset(Dataset):
             
             if l_map and r_map and t_map:
                 # Labeling Logic
-                if 493 <= group_id <= 517:
-                    label = 0 # Abaca
-                elif 518 <= group_id <= 572:
+                if 635 <= group_id <= 734:
                     label = 1 # Daratex
+                elif 580 <= group_id <= 634 or 735 <= group_id <= 779:
+                    label = 0 # Abaca
                 else:
                     continue # Ignore groups outside specified ID ranges
                 
@@ -118,6 +118,7 @@ def train():
     print(f"Training on: {device}")
 
     transform = transforms.Compose([
+        transforms.CenterCrop(300), # 👈 Focus on the fiber, ignore the edges
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))
@@ -135,7 +136,7 @@ def train():
 
     model = FiberClassifier().to(device)
     criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters(), lr=0.001)
+    optimizer = optim.Adam(model.parameters(), lr=0.0001, weight_decay=1e-5)
 
     # Simple Loop
     for epoch in range(20):

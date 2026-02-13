@@ -17,6 +17,7 @@ def evaluate_model(model_path, csv_file, data_dir):
     
     # 1. Load Data
     transform = transforms.Compose([
+        transforms.CenterCrop(300), # 👈 Focus on the fiber, ignore the edges
         transforms.Resize((224, 224)),
         transforms.ToTensor(),
         transforms.Normalize((0.5,), (0.5,))

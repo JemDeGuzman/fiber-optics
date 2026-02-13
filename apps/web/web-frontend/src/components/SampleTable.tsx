@@ -17,6 +17,9 @@ interface Props {
   onUpdate: (id: number, patch: Partial<SampleRow>) => Promise<void>;
   selectedIds?: number[];
   onSelectionChange?: (ids: number[]) => void;
+  sortKey: string;
+  sortOrder: string;
+  onSort: (key: string) => void;
 }
 
 /* ===========================
@@ -37,6 +40,7 @@ const Th = styled.th`
   text-align: left;
   padding: 8px;
   border-bottom: 1px solid #555;
+  user-select: none;
 `;
 
 const Td = styled.td`
@@ -77,10 +81,13 @@ const Button = styled.button<{ small?: boolean }>`
    COMPONENT
 =========================== */
 export default function SampleTable({
-  samples,
-  onUpdate,
-  selectedIds = [],
-  onSelectionChange,
+  samples, 
+  onUpdate, 
+  selectedIds = [], 
+  onSelectionChange, 
+  sortKey, 
+  sortOrder, 
+  onSort
 }: Props) {
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [edited, setEdited] = React.useState<Partial<SampleRow>>({});
@@ -99,7 +106,7 @@ export default function SampleTable({
     [samples, selectedIds]
   );
 
-  const toggleSelectAllOnPage = (e?: React.ChangeEvent<HTMLInputElement>) => {
+  const toggleSelectAllOnPage = () => {
     if (allSelected) {
       const next = selectedIds.filter(i => !samples.some(s => s.id === i));
       onSelectionChange?.(next);
@@ -112,13 +119,7 @@ export default function SampleTable({
 
   const startEdit = (s: SampleRow) => {
     setEditingId(s.id);
-    setEdited({
-      classification: s.classification,
-      luster_value: s.luster_value,
-      roughness: s.roughness,
-      tensile_strength: s.tensile_strength,
-      image_capture: s.image_capture,
-    });
+    setEdited({ ...s });
   };
 
   const cancelEdit = () => {
@@ -133,23 +134,32 @@ export default function SampleTable({
     setEdited({});
   };
 
+  // Helper to render the sort arrows based on props from page.tsx
+  const renderSortIcon = (key: string) => {
+    if (sortKey !== key) return <span style={{ color: '#3A4946', marginLeft: '4px' }}>↕</span>;
+    return sortOrder === 'asc' ? 
+      <span style={{ color: '#EBE1BD', marginLeft: '4px' }}>▲</span> : 
+      <span style={{ color: '#EBE1BD', marginLeft: '4px' }}>▼</span>;
+  };
+
   return (
     <TableContainer>
       <TableEl>
         <thead>
           <tr>
             <Th><Checkbox type="checkbox" checked={allSelected} onChange={toggleSelectAllOnPage} /></Th>
-            <Th>ID</Th>
-            <Th>Classification</Th>
-            <Th>Luster</Th>
-            <Th>Roughness</Th>
-            <Th>Tensile</Th>
+            <Th onClick={() => onSort('id')} style={{ cursor: 'pointer' }}>ID {renderSortIcon('id')}</Th>
+            <Th onClick={() => onSort('classification')} style={{ cursor: 'pointer' }}>Classification {renderSortIcon('classification')} </Th>
+            <Th onClick={() => onSort('luster_value')} style={{cursor:'pointer'}}>Luster {renderSortIcon('luster_value')}</Th>
+            <Th onClick={() => onSort('roughness')} style={{cursor:'pointer'}}>Roughness {renderSortIcon('roughness')}</Th>
+            <Th onClick={() => onSort('tensile_strength')} style={{cursor:'pointer'}}>Tensile {renderSortIcon('tensile_strength')}</Th>
             <Th>Image</Th>
             <Th>Created</Th>
-            <Th></Th>
+            <Th>Actions</Th>
           </tr>
         </thead>
         <tbody>
+          {/* We map 'samples' directly because page.tsx handles the sorting/filtering via API */}
           {samples.map(s => (
             <tr key={s.id}>
               <Td><Checkbox type="checkbox" checked={isSelected(s.id)} onChange={() => toggleSelect(s.id)} /></Td>
@@ -163,35 +173,37 @@ export default function SampleTable({
 
               <Td>
                 {editingId === s.id ? (
-                  <Input value={edited.luster_value ?? ""} onChange={e => setEdited({ ...edited, luster_value: e.target.value === "" ? null : Number(e.target.value) })} />
-                ) : String(s.luster_value ?? "")}
+                  <Input type="number" value={edited.luster_value ?? ""} onChange={e => setEdited({ ...edited, luster_value: e.target.value === "" ? null : Number(e.target.value) })} />
+                ) : String(s.luster_value ?? "-")}
               </Td>
 
               <Td>
                 {editingId === s.id ? (
-                  <Input value={edited.roughness ?? ""} onChange={e => setEdited({ ...edited, roughness: e.target.value === "" ? null : Number(e.target.value) })} />
-                ) : String(s.roughness ?? "")}
+                  <Input type="number" value={edited.roughness ?? ""} onChange={e => setEdited({ ...edited, roughness: e.target.value === "" ? null : Number(e.target.value) })} />
+                ) : String(s.roughness ?? "-")}
               </Td>
 
               <Td>
                 {editingId === s.id ? (
-                  <Input value={edited.tensile_strength ?? ""} onChange={e => setEdited({ ...edited, tensile_strength: e.target.value === "" ? null : Number(e.target.value) })} />
-                ) : String(s.tensile_strength ?? "")}
+                  <Input type="number" value={edited.tensile_strength ?? ""} onChange={e => setEdited({ ...edited, tensile_strength: e.target.value === "" ? null : Number(e.target.value) })} />
+                ) : String(s.tensile_strength ?? "-")}
               </Td>
 
               <Td>
-                {editingId === s.id ? (
-                  <Input value={edited.image_capture ?? ""} onChange={e => setEdited({ ...edited, image_capture: e.target.value })} />
-                ) : s.image_capture}
+                {s.image_capture ? (
+                  <Button as="a" href={s.image_capture} target="_blank" rel="noopener noreferrer" small style={{ textDecoration: 'none' }}>
+                    View
+                  </Button>
+                ) : "N/A"}
               </Td>
 
-              <Td>{new Date(s.createdAt).toLocaleString()}</Td>
+              <Td>{new Date(s.createdAt).toLocaleDateString()}</Td>
 
               <Td>
                 {editingId === s.id ? (
                   <>
                     <Button small onClick={saveEdit}>Save</Button>
-                    <Button small onClick={cancelEdit}>Cancel</Button>
+                    <Button small onClick={cancelEdit}>X</Button>
                   </>
                 ) : (
                   <Button small onClick={() => startEdit(s)}>Edit</Button>
@@ -199,6 +211,11 @@ export default function SampleTable({
               </Td>
             </tr>
           ))}
+          {samples.length === 0 && (
+            <tr>
+              <Td colSpan={9} style={{ textAlign: 'center', padding: '20px' }}>No samples found for this search/batch.</Td>
+            </tr>
+          )}
         </tbody>
       </TableEl>
     </TableContainer>
