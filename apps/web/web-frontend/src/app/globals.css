@@ -10,10 +10,12 @@
   }
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background-color: #1f1f1f; /* Matches your dashboard background */
 }
 
 body {

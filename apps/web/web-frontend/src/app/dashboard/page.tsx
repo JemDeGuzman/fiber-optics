@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from 'next/navigation';
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import SampleTable, { SampleRow } from "@/components/SampleTable";
 import ClassificationPie from "@/components/ClassificationPie";
@@ -89,6 +90,10 @@ const Button = styled.button`
   &:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+  &:hover:not(:disabled) {
+    background-color: #EBE1BD;
+    color: #3A4946;
   }
 `;
 
@@ -207,6 +212,8 @@ export default function Dashboard(): React.JSX.Element {
   const [sortOrder, setSortOrder] = useState("desc");
 
   const [allSamplesForVisuals, setAllSamplesForVisuals] = useState<any[]>([]);
+
+  const router = useRouter();
 
   const getAuthHeaders = (): Record<string,string> => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -463,7 +470,9 @@ export default function Dashboard(): React.JSX.Element {
         <LogoTitleWrapper>
           <Logo src="/assets/splash-logo.png" alt="FO" />
           <h1>Welcome to Fiber Optics!</h1>
+          <Button onClick={() => router.push('dashboard/about')}>About Us</Button>
         </LogoTitleWrapper>
+        
         <div>
           {currentUser ? (
             <>
