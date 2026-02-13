@@ -2,9 +2,10 @@
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import SampleTable, { SampleRow } from "@/components/SampleTable";
 import ClassificationPie from "@/components/ClassificationPie";
-import DeviceConnectorModal from "@/components/DeviceConnectorModal";
 import styled, { createGlobalStyle } from "styled-components";
-import ClassificationBar from "@/components/ClassificationBar";
+import { FiberComparisonScatter } from "@/components/FiberScatterPlot";
+import { SamplingTrend } from "@/components/SamplingTrend";
+import { FiberBoxPlot } from "@/components/FiberBoxPlot";
 
 interface Batch {
   id: number;
@@ -64,6 +65,12 @@ const Toolbar = styled.div`
   margin-bottom: 16px;
   padding-bottom: 12px;
   border-bottom: 1px solid #EBE1BD;
+
+  position: sticky;
+  top: 0;
+  background-color: #1f1f1f; /* Matches your wrapper background */
+  z-index: 100;              /* Keeps it above table content */
+  padding-top: 10px;         /* Prevents text from hitting the very top edge */
 `;
 
 const ToolbarSection = styled.div`
@@ -76,8 +83,8 @@ const Button = styled.button`
   background-color: #3A4946;
   color: #EBE1BD;
   border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 12px 24px;
+  border-radius: 12px;
   cursor: pointer;
   &:disabled {
     opacity: 0.5;
@@ -89,24 +96,24 @@ const Input = styled.input`
   background-color: #262626;
   color: #EBE1BD;
   border: 1px solid #3A4946;
-  border-radius: 6px;
-  padding: 6px 10px;
+  border-radius: 12px;
+  padding: 12px 16px;
 `;
 
 const Select = styled.select`
   background-color: #262626;
   color: #EBE1BD;
   border: 1px solid #3A4946;
-  border-radius: 6px;
-  padding: 6px 10px;
+  border-radius: 12px;
+  padding: 12px 16px;
 `;
 
 const TableStatsWrapper = styled.div`
   display: flex;
   flex-direction: column;
   gap: 32px;
-  margin-top: 16px;
-  border-top: 1px solid #EBE1BD;
+  /* margin-top: 16px; 
+  /* border-top: 1px solid #EBE1BD; */
   padding-top: 16px;
 `;
 
@@ -118,11 +125,30 @@ const TableWrapper = styled.div`
 
 const VisualsGrid = styled.div`
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr 1fr; /* Two main columns */
+  grid-template-areas: 
+    "scatter box"
+    "bottom bottom"; /* Bottom area spans both columns */
+  gap: 16px;
   width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
+  margin-bottom: 24px;
+
+  .area-scatter { grid-area: scatter; min-height: 300px; }
+  .area-box { grid-area: box; min-height: 300px; }
+  
+  .bottom-container {
+    grid-area: bottom;
+    display: grid;
+    grid-template-columns: 280px 1fr; /* Compact Pie, wide Trend */
+    gap: 16px;
+    min-height: 250px;
+  }
+
+  @media (max-width: 1100px) {
+    grid-template-columns: 1fr;
+    grid-template-areas: "scatter" "box" "bottom";
+    .bottom-container { grid-template-columns: 1fr; }
+  }
 `;
 
 const StatsWrapper = styled.div`
@@ -156,7 +182,7 @@ export default function Dashboard(): React.JSX.Element {
   const [selectedBatch, setSelectedBatch] = useState<number | null>(null);
 
   const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(25);
+  const [limit, setLimit] = useState<number>(100);
   const [totalSamples, setTotalSamples] = useState<number>(0);
 
   const [samples, setSamples] = useState<SampleRow[]>([]);
@@ -179,6 +205,8 @@ export default function Dashboard(): React.JSX.Element {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortKey, setSortKey] = useState("id");
   const [sortOrder, setSortOrder] = useState("desc");
+
+  const [allSamplesForVisuals, setAllSamplesForVisuals] = useState<any[]>([]);
 
   const getAuthHeaders = (): Record<string,string> => {
     const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
@@ -215,6 +243,20 @@ export default function Dashboard(): React.JSX.Element {
       console.error("fetchSamplesAndStats error", err);
     }
   };
+
+  // Fetch visual data (all samples) separately
+  const fetchVisualData = async (batchId: number) => {
+    const res = await fetch(`${API}/api/batches/${batchId}/visuals`);
+    const data = await res.json();
+    setAllSamplesForVisuals(data.samples || []);
+  };
+
+  useEffect(() => {
+    if (selectedBatch) {
+      fetchSamplesAndStats(selectedBatch, page, limit, searchTerm, sortKey, sortOrder);
+      fetchVisualData(selectedBatch); // Get the full dataset for charts
+    }
+  }, [selectedBatch, page, limit, searchTerm, sortKey, sortOrder]);
 
   // MASTER EFFECT: Trigger fetch when page, limit, search, or sort changes
   useEffect(() => {
@@ -377,6 +419,24 @@ export default function Dashboard(): React.JSX.Element {
     setSelectedSampleIds([]);
   };
 
+  const renderPagination = () => (
+    <div style={{ display: "flex", alignItems: "center", gap: 12, padding: '10px 0' }}>
+      <Button onClick={() => gotoPage(page - 1)} disabled={page <= 1}>Prev</Button>
+      <span style={{ color: '#EBE1BD' }}>
+        Page <strong>{page}</strong> of {totalPages} ({totalSamples} total)
+      </span>
+      <Button onClick={() => gotoPage(page + 1)} disabled={page >= totalPages}>Next</Button>
+      
+      <label style={{ marginLeft: 'auto', color: '#EBE1BD' }}>
+        Show
+        <Select value={limit} onChange={(e) => changeLimit(Number(e.target.value))} style={{ margin: '0 8px' }}>
+          {[10, 25, 50, 100, 200].map(v => <option key={v} value={v}>{v}</option>)}
+        </Select>
+        per page
+      </label>
+    </div>
+  );
+
   const exportPageCsv = async () => { if (!selectedBatch) return; window.open(`${API}/api/batches/${selectedBatch}/export?page=${page}&limit=${limit}`); };
   const exportAllCsv = async () => { if (!selectedBatch) return; window.open(`${API}/api/batches/${selectedBatch}/export`); };
   const exportSelectedCsv = async () => { 
@@ -417,10 +477,10 @@ export default function Dashboard(): React.JSX.Element {
       <Toolbar>
         <ToolbarSection>
           <Input 
-            placeholder="🔍 Search ID or Class (e.g. Daratex)" 
+            placeholder="🔍 Search ID or Class" 
             value={searchTerm} 
             onChange={(e) => setSearchTerm(e.target.value)} 
-            style={{ width: '250px' }}
+            style={{ width: '200px' }}
           />
         </ToolbarSection>
 
@@ -443,17 +503,27 @@ export default function Dashboard(): React.JSX.Element {
           <Button onClick={exportPageCsv} disabled={!selectedBatch}>Export Page</Button>
           <Button onClick={exportSelectedCsv} disabled={!selectedBatch || !selectedSampleIds.length}>Export Selected</Button>
           <Button onClick={deleteSelectedSamples} disabled={!selectedSampleIds.length}>Delete Selected</Button>
-          <Button onClick={() => setShowScanner(true)}>Scan QR</Button>
-          <Button onClick={() => setShowDeviceConnector(true)}>🔗 Connect</Button>
         </ToolbarSection>
       </Toolbar>
 
       <TableStatsWrapper>
         {stats ? (
-          <VisualsGrid>
-            <ClassificationPie ratio={stats.ratio} />
-            <ClassificationBar ratio={stats.ratio} />
-          </VisualsGrid>
+        <VisualsGrid>
+          <div className="chart-item area-scatter">
+            <FiberComparisonScatter allSamples={allSamplesForVisuals} />
+          </div>
+          <div className="chart-item area-box">
+            <FiberBoxPlot allSamples={allSamplesForVisuals} />
+          </div>
+          <div className="bottom-container">
+            <div className="chart-item">
+              <ClassificationPie ratio={stats.ratio} />
+            </div>
+            <div className="chart-item">
+              <SamplingTrend samples={allSamplesForVisuals} />
+            </div>
+          </div>
+        </VisualsGrid>
         ) : <p>Please select a Batch to view analytics.</p>}
 
         <TableWrapper>
@@ -463,6 +533,8 @@ export default function Dashboard(): React.JSX.Element {
               Selected: <strong>{selectedSampleIds.length}</strong>
             </span>
           </div>
+
+          {renderPagination()}
 
           <SampleTable
             samples={samples}
@@ -481,18 +553,8 @@ export default function Dashboard(): React.JSX.Element {
             }}
           />
 
-          <div style={{ marginTop: 16, display: "flex", alignItems: "center", gap: 12 }}>
-            <Button onClick={() => gotoPage(page - 1)} disabled={page <= 1}>Prev</Button>
-            <span>Page <strong>{page}</strong> of {totalPages} ({totalSamples} total)</span>
-            <Button onClick={() => gotoPage(page + 1)} disabled={page >= totalPages}>Next</Button>
-            
-            <label style={{ marginLeft: 'auto' }}>
-              Show
-              <Select value={limit} onChange={(e) => changeLimit(Number(e.target.value))} style={{ margin: '0 8px' }}>
-                {[10, 25, 50, 100].map(v => <option key={v} value={v}>{v}</option>)}
-              </Select>
-              per page
-            </label>
+          <div style={{ marginTop: 16 }}>
+            {renderPagination()}
           </div>
         </TableWrapper>
       </TableStatsWrapper>

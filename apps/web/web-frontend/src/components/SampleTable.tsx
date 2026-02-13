@@ -2,6 +2,8 @@
 import React, { useMemo } from "react";
 import styled from "styled-components";
 
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+
 export interface SampleRow {
   id: number;
   classification: string;
@@ -10,6 +12,13 @@ export interface SampleRow {
   tensile_strength: number | null;
   image_capture: string | null;
   createdAt: string;
+  images?: ImageCapture[]; // Optional array of related images
+}
+
+export interface ImageCapture {
+  id: number;
+  fileName: string;
+  imageUrl: string;
 }
 
 interface Props {
@@ -27,7 +36,7 @@ interface Props {
 =========================== */
 const TableContainer = styled.div`
   width: 100%;
-  overflow-x: auto;
+  overflow-x: visible;
 `;
 
 const TableEl = styled.table`
@@ -41,6 +50,12 @@ const Th = styled.th`
   padding: 8px;
   border-bottom: 1px solid #555;
   user-select: none;
+  
+  /* Sticky Header Logic */
+  position: sticky;
+  top: 55px;
+  background-color: #1f1f1f; /* Must have a background to hide rows sliding under it */
+  z-index: 10;
 `;
 
 const Td = styled.td`
@@ -77,20 +92,40 @@ const Button = styled.button<{ small?: boolean }>`
   }
 `;
 
+const StyledLink = styled.a`
+  color: #8fb3a9; /* A slightly different color to indicate it's a link */
+  text-decoration: underline;
+  font-size: 0.9rem;
+  cursor: pointer;
+
+  &:hover {
+    color: #ebe1bd;
+  }
+`;
+
+const SortIcon = styled.span<{ active: boolean; direction: 'asc' | 'desc' }>`
+  display: inline-block;
+  margin-left: 8px;
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  
+  /* Arrow pointing up or down */
+  ${props => props.direction === 'asc' 
+    ? `border-bottom: 5px solid ${props.active ? '#EBE1BD' : '#3A4946'};` 
+    : `border-top: 5px solid ${props.active ? '#EBE1BD' : '#3A4946'};`}
+    
+  transition: border-color 0.2s;
+`;
+
 /* ===========================
    COMPONENT
 =========================== */
-export default function SampleTable({
-  samples, 
-  onUpdate, 
-  selectedIds = [], 
-  onSelectionChange, 
-  sortKey, 
-  sortOrder, 
-  onSort
-}: Props) {
+export default function SampleTable({samples, onUpdate, selectedIds = [], onSelectionChange, sortKey, sortOrder, onSort}: Props) {
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [edited, setEdited] = React.useState<Partial<SampleRow>>({});
+  const [sortConfig, setSortConfig] = React.useState<{ key: keyof SampleRow, direction: 'asc' | 'desc' } | null>(null);
 
   const isSelected = (id: number) => selectedIds.includes(id);
 
@@ -106,7 +141,7 @@ export default function SampleTable({
     [samples, selectedIds]
   );
 
-  const toggleSelectAllOnPage = () => {
+  const toggleSelectAllOnPage = (e?: React.ChangeEvent<HTMLInputElement>) => {
     if (allSelected) {
       const next = selectedIds.filter(i => !samples.some(s => s.id === i));
       onSelectionChange?.(next);
@@ -119,7 +154,13 @@ export default function SampleTable({
 
   const startEdit = (s: SampleRow) => {
     setEditingId(s.id);
-    setEdited({ ...s });
+    setEdited({
+      classification: s.classification,
+      luster_value: s.luster_value,
+      roughness: s.roughness,
+      tensile_strength: s.tensile_strength,
+      image_capture: s.image_capture,
+    });
   };
 
   const cancelEdit = () => {
@@ -134,13 +175,27 @@ export default function SampleTable({
     setEdited({});
   };
 
-  // Helper to render the sort arrows based on props from page.tsx
   const renderSortIcon = (key: string) => {
     if (sortKey !== key) return <span style={{ color: '#3A4946', marginLeft: '4px' }}>↕</span>;
     return sortOrder === 'asc' ? 
       <span style={{ color: '#EBE1BD', marginLeft: '4px' }}>▲</span> : 
       <span style={{ color: '#EBE1BD', marginLeft: '4px' }}>▼</span>;
   };
+
+  // Sorting Logic
+  const sortedSamples = React.useMemo(() => {
+    let sortableItems = [...samples];
+    if (sortConfig !== null) {
+      sortableItems.sort((a, b) => {
+        const aVal = a[sortConfig.key] ?? 0;
+        const bVal = b[sortConfig.key] ?? 0;
+        if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+    }
+    return sortableItems;
+  }, [samples, sortConfig]);
 
   return (
     <TableContainer>
@@ -150,17 +205,16 @@ export default function SampleTable({
             <Th><Checkbox type="checkbox" checked={allSelected} onChange={toggleSelectAllOnPage} /></Th>
             <Th onClick={() => onSort('id')} style={{ cursor: 'pointer' }}>ID {renderSortIcon('id')}</Th>
             <Th onClick={() => onSort('classification')} style={{ cursor: 'pointer' }}>Classification {renderSortIcon('classification')} </Th>
-            <Th onClick={() => onSort('luster_value')} style={{cursor:'pointer'}}>Luster {renderSortIcon('luster_value')}</Th>
-            <Th onClick={() => onSort('roughness')} style={{cursor:'pointer'}}>Roughness {renderSortIcon('roughness')}</Th>
-            <Th onClick={() => onSort('tensile_strength')} style={{cursor:'pointer'}}>Tensile {renderSortIcon('tensile_strength')}</Th>
+            <Th onClick={() => onSort('luster_value')} style={{cursor:'pointer'}}>Luster</Th>
+            <Th onClick={() => onSort('roughness')} style={{cursor:'pointer'}}>Roughness</Th>
+            <Th onClick={() => onSort('tensile_strength')} style={{cursor:'pointer'}}>Tensile</Th>
             <Th>Image</Th>
-            <Th>Created</Th>
-            <Th>Actions</Th>
+            <Th onClick={() => onSort('createdAt')} style={{ cursor: 'pointer' }}>Created {renderSortIcon('createdAt')}</Th>
+            <Th></Th>
           </tr>
         </thead>
         <tbody>
-          {/* We map 'samples' directly because page.tsx handles the sorting/filtering via API */}
-          {samples.map(s => (
+          {sortedSamples.map(s => (
             <tr key={s.id}>
               <Td><Checkbox type="checkbox" checked={isSelected(s.id)} onChange={() => toggleSelect(s.id)} /></Td>
               <Td>{s.id}</Td>
@@ -174,36 +228,64 @@ export default function SampleTable({
               <Td>
                 {editingId === s.id ? (
                   <Input type="number" value={edited.luster_value ?? ""} onChange={e => setEdited({ ...edited, luster_value: e.target.value === "" ? null : Number(e.target.value) })} />
-                ) : String(s.luster_value ?? "-")}
+                ) : (s.luster_value !== null ? s.luster_value.toFixed(4) : "-")}
               </Td>
 
               <Td>
                 {editingId === s.id ? (
                   <Input type="number" value={edited.roughness ?? ""} onChange={e => setEdited({ ...edited, roughness: e.target.value === "" ? null : Number(e.target.value) })} />
-                ) : String(s.roughness ?? "-")}
+                ) : (s.roughness !== null ? s.roughness.toFixed(4) : "-")}
               </Td>
 
               <Td>
                 {editingId === s.id ? (
                   <Input type="number" value={edited.tensile_strength ?? ""} onChange={e => setEdited({ ...edited, tensile_strength: e.target.value === "" ? null : Number(e.target.value) })} />
-                ) : String(s.tensile_strength ?? "-")}
+                ) : (s.tensile_strength !== null ? s.tensile_strength.toFixed(4) : "-")}
               </Td>
 
+              {/* IMAGE COLUMN - UPDATED LOGIC */}
               <Td>
-                {s.image_capture ? (
-                  <Button as="a" href={s.image_capture} target="_blank" rel="noopener noreferrer" small style={{ textDecoration: 'none' }}>
-                    View
-                  </Button>
-                ) : "N/A"}
+                {(() => {
+                  // 1. Ensure s.images exists and is an array before searching
+                  const imagesArray = Array.isArray(s.images) ? s.images : [];
+                  
+                  // 2. Find the image where fileName is a string AND starts with 'sample'
+                  const sampleImage = imagesArray.find(img => 
+                    typeof img.fileName === "string" && img.fileName.toLowerCase().startsWith("sample")
+                  );
+                  
+                  // 3. Select the best path available
+                  const targetPath = sampleImage?.fileName || s.image_capture;
+
+                  if (!targetPath) return "No Image";
+
+                  // 4. Construct URL: If it's a full URL already, leave it. If it's just a filename, prepend API.
+                  const finalUrl = targetPath.startsWith("http") 
+                    ? targetPath 
+                    : `${API}/uploads/${targetPath}`;
+
+                  return (
+                    <Button 
+                      as="a" 
+                      href={finalUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer" 
+                      small 
+                      style={{ textDecoration: 'none' }}
+                    >
+                      Open Image
+                    </Button>
+                  );
+                })()}
               </Td>
 
-              <Td>{new Date(s.createdAt).toLocaleDateString()}</Td>
+              <Td>{new Date(s.createdAt).toLocaleString()}</Td>
 
               <Td>
                 {editingId === s.id ? (
                   <>
                     <Button small onClick={saveEdit}>Save</Button>
-                    <Button small onClick={cancelEdit}>X</Button>
+                    <Button small onClick={cancelEdit}>Cancel</Button>
                   </>
                 ) : (
                   <Button small onClick={() => startEdit(s)}>Edit</Button>
@@ -211,11 +293,6 @@ export default function SampleTable({
               </Td>
             </tr>
           ))}
-          {samples.length === 0 && (
-            <tr>
-              <Td colSpan={9} style={{ textAlign: 'center', padding: '20px' }}>No samples found for this search/batch.</Td>
-            </tr>
-          )}
         </tbody>
       </TableEl>
     </TableContainer>

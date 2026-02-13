@@ -7,7 +7,8 @@ import {
   createSample,
   listBatches,
   updateBatch,
-  deleteBatch // <-- new
+  deleteBatch,
+  getBatchVisuals
 } from "../controllers/batchController";
 
 const router = Router();
@@ -21,5 +22,6 @@ router.get("/:id/samples", listSamples); // paginated samples
 router.post("/:id/samples", createSample); // create sample in batch
 router.get("/:id/export", exportCsv);    // export all or page via query params
 router.post("/:id/export", exportCsv);   // export selected ids via POST { ids: [..] }
+router.get("/:id/visuals", getBatchVisuals);
 
 export default router;

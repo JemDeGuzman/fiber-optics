@@ -38,6 +38,26 @@ export async function getBatchStats(req: Request, res: Response) {
   res.json({ batchId: id, total, ratio });
 }
 
+export async function getBatchVisuals(req: Request, res: Response) {
+  try {
+    const batchId = Number(req.params.id);
+    const samples = await prisma.dataSample.findMany({
+      where: { batchId },
+      orderBy: { createdAt: "asc" },
+      select: { 
+        classification: true, 
+        luster_value: true, 
+        roughness: true, 
+        tensile_strength: true, 
+        createdAt: true 
+      }
+    });
+    return res.json({ samples });
+  } catch (err: any) {
+    return res.status(500).json({ error: "Failed to fetch visual data" });
+  }
+}
+
 export async function listSamples(req: Request, res: Response) {
   try {
     const batchId = Number(req.params.id);
@@ -45,18 +65,49 @@ export async function listSamples(req: Request, res: Response) {
       return res.status(400).json({ error: "Invalid batch id" });
     }
 
-    const page = Math.max(1, Number(req.query.page as string ? req.query.page as any : 1) || 1);
-    const limit = Math.min(500, Number(req.query.limit as string ? req.query.limit as any : 50) || 50);
+    // 1. Get query parameters
+    const page = Math.max(1, Number(req.query.page) || 1);
+    const limit = Math.min(500, Number(req.query.limit) || 50);
     const skip = (page - 1) * limit;
 
+    const search = (req.query.search as string) || "";
+    const sortBy = (req.query.sortBy as string) || "createdAt";
+    const sortOrder = (req.query.sortOrder as string) === "asc" ? "asc" : "desc";
+
+    // 2. Build the 'where' clause for searching
+    // We search by classification OR by ID (if the search is a number)
+    const searchFilter = search
+      ? {
+          OR: [
+            { classification: { contains: search, mode: 'insensitive' as const } },
+            ...(isNaN(Number(search)) ? [] : [{ id: Number(search) }]),
+          ],
+        }
+      : {};
+
+    const whereClause = {
+      batchId,
+      ...searchFilter,
+    };
+
+    // 3. Execute count and findMany in parallel
     const [total, samples] = await Promise.all([
-      prisma.dataSample.count({ where: { batchId } }),
+      prisma.dataSample.count({ where: whereClause }),
       prisma.dataSample.findMany({
-        where: { batchId },
+        where: whereClause,
         take: limit,
         skip,
-        orderBy: { createdAt: "desc" },
-        select: { id:true, image_capture:true, classification:true, luster_value:true, roughness:true, tensile_strength:true, createdAt:true }
+        orderBy: { [sortBy]: sortOrder }, // Dynamic sorting!
+        select: { 
+          id: true, 
+          image_capture: true, 
+          classification: true, 
+          luster_value: true, 
+          roughness: true, 
+          tensile_strength: true, 
+          createdAt: true,
+          images: { select: { imageUrl: true } }, // include related images
+        }
       })
     ]);
 
