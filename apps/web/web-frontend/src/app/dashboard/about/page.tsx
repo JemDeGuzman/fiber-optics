@@ -25,7 +25,7 @@ const GlobalReset = createGlobalStyle`
 // Navigation Header
 const NavHeader = styled.div`
   max-width: 1200px;
-  margin: 0 auto 60px auto;
+  margin: 0 auto 0 auto;
 `;
 
 const ReturnButton = styled.button`
@@ -103,11 +103,11 @@ export default function AboutPage() {
   // Temporary Data Structure for you to edit later
   const groupMembers = [
     { id: 1, name: "Jemuel Endrew De Guzman", role: "Team Leader//Data Science", description: "Responsible for team planning, deep learning model development, and project methodology.", imageUrl: "/assets/jedg.png" },
-    { id: 2, name: "Mark Laurence Castillo", role: "Prototype Design//Cyber-Physical Systems", description: "Responsible for physical Prototype development, Component integration, and Quality Assurance.", imageUrl: "/assets/kenny.png" },
-    { id: 3, name: "Rob Andre Catapang", role: "Software Design//System Administration", description: "Responsible for developing and managing the frontend and backend of the web application", imageUrl: "/assets/lebron.png"},
-    { id: 4, name: "John Chester Irylle Tayam", role: "Documentation//Cyber-Physical Systems", description: "Responsible for maintaining the project documentation and managing project deliverables." },
-    { id: 5, name: "Steven Dale Pajarillo", role: "Resource Manager//Data Science", description: "Responsible for contacting the client and gathering resources for the project." },
-    { id: 6, name: "Engr. Angielyn Jebulan", role: "Project Design Adviser", description: "Responsible for keeping team on schedule, as well as providing design guidance and feedback." },
+    { id: 2, name: "Mark Laurence Castillo", role: "Prototype Design//Cyber-Physical Systems", description: "Responsible for physical Prototype development, Component integration, and Quality Assurance.", imageUrl: "/assets/mlc.png" },
+    { id: 3, name: "Rob Andre Catapang", role: "Software Design//System Administration", description: "Responsible for developing and managing the frontend and backend of the web application", imageUrl: "/assets/rac.png"},
+    { id: 4, name: "John Chester Irylle Tayam", role: "Documentation//Cyber-Physical Systems", description: "Responsible for maintaining the project documentation and managing project deliverables.", imageUrl: "/assets/jict.png" },
+    { id: 5, name: "Steven Dale Pajarillo", role: "Resource Manager//Data Science", description: "Responsible for contacting the client and gathering resources for the project.", imageUrl: "/assets/sdp.png" },
+    { id: 6, name: "Engr. Angielyn Jebulan", role: "Project Design Adviser", description: "Responsible for keeping team on schedule, as well as providing design guidance and feedback.", imageUrl: "/assets/ejl.png" },
   ];
 
   return (
