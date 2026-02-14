@@ -259,17 +259,24 @@ export default function Dashboard(): React.JSX.Element {
   };
 
   useEffect(() => {
-    if (selectedBatch) {
-      fetchSamplesAndStats(selectedBatch, page, limit, searchTerm, sortKey, sortOrder);
-      fetchVisualData(selectedBatch); // Get the full dataset for charts
-    }
-  }, [selectedBatch, page, limit, searchTerm, sortKey, sortOrder]);
+    // Only run if a batch is selected
+    if (!selectedBatch) return;
 
-  // MASTER EFFECT: Trigger fetch when page, limit, search, or sort changes
-  useEffect(() => {
-    if (selectedBatch) {
+    // Helper function to get the latest data
+    const refreshData = () => {
       fetchSamplesAndStats(selectedBatch, page, limit, searchTerm, sortKey, sortOrder);
-    }
+      fetchVisualData(selectedBatch);
+    };
+
+    // Run once immediately when a filter or batch changes
+    refreshData();
+
+    // Set up a timer to run every 10 seconds
+    const intervalId = setInterval(refreshData, 10000);
+
+    // Clean up the timer if the user leaves or parameters change
+    return () => clearInterval(intervalId);
+
   }, [selectedBatch, page, limit, searchTerm, sortKey, sortOrder]);
 
   // Reset page when filter or sort changes
