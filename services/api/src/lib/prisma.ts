@@ -1,4 +1,7 @@
-import { PrismaClient } from '../../dist/generated/client';
+
+// services/api/src/lib/prisma.ts
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
+
 export default prisma;
