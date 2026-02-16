@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc -p tsconfig.json",
-    "railway-build": "prisma generate --schema=./prisma/schema.prisma && tsc -p tsconfig.json",
+    "railway-build": "pnpm build && prisma generate --schema=./prisma/schema.prisma" ,
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate --schema=./prisma/schema.prisma",
     "prisma:migrate": "prisma migrate deploy",
