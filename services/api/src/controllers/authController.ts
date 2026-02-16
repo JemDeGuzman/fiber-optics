@@ -2,9 +2,8 @@
 import { Request, Response, NextFunction} from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { PrismaClient } from '../generated/client';
+import prisma from '../lib/prisma';
 
-const prisma = new PrismaClient();
 const JWT_SECRET = process.env.JWT_SECRET || "4x0e3n0o9p7h1i5u0s7!5!7";
 
 type SafeUser = { id: number; email: string; name?: string | null };

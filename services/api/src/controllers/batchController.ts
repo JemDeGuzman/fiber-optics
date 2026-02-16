@@ -1,8 +1,6 @@
 import { Request, Response } from "express";
-import { PrismaClient } from '../generated/client';
+import prisma from '../lib/prisma';
 import { Parser } from "json2csv";
-
-const prisma = new PrismaClient();
 
 export async function listBatches(req: Request, res: Response) {
   try {

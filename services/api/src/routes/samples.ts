@@ -3,11 +3,10 @@ import { Router, Request, Response } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { PrismaClient } from '../generated/client';
+import prisma from '../lib/prisma';
 import { updateSample, deleteSample, deleteManySamples } from "../controllers/batchController";
 
 const router = Router();
-const prisma = new PrismaClient();
 
 type MulterRequest<TFile = Express.Multer.File> = Omit<Request, "file"> & {
   file?: TFile;
