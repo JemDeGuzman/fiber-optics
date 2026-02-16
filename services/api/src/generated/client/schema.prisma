@@ -1,0 +1,51 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider   = "prisma-client-js"
+  engineType = "binary"
+  output     = "../src/generated/client"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String?
+  createdAt DateTime @default(now())
+}
+
+model DataBatch {
+  id        Int          @id @default(autoincrement())
+  name      String
+  createdAt DateTime     @default(now())
+  samples   DataSample[]
+}
+
+model DataSample {
+  id               Int            @id @default(autoincrement())
+  batchId          Int
+  batch            DataBatch      @relation(fields: [batchId], references: [id])
+  image_capture    String // deprecated: use images relationship instead
+  images           ImageCapture[] // new: multiple images per sample
+  classification   String // e.g. "good", "bad", "unknown", etc.
+  luster_value     Float?
+  roughness        Float?
+  tensile_strength Float?
+  createdAt        DateTime       @default(now())
+
+  @@index([batchId])
+}
+
+model ImageCapture {
+  id        Int        @id @default(autoincrement())
+  sampleId  Int
+  sample    DataSample @relation(fields: [sampleId], references: [id], onDelete: Cascade)
+  fileName  String? // original filename (sample.jpg, DoLP.png, etc.)
+  imageUrl  String // url to the image
+  createdAt DateTime   @default(now())
+
+  @@index([sampleId])
+}

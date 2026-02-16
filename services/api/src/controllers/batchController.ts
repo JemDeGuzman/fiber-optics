@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '../generated/client';
 import { Parser } from "json2csv";
 
 const prisma = new PrismaClient();

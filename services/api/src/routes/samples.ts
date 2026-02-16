@@ -3,7 +3,7 @@ import { Router, Request, Response } from "express";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '../generated/client';
 import { updateSample, deleteSample, deleteManySamples } from "../controllers/batchController";
 
 const router = Router();
