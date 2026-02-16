@@ -16,6 +16,5 @@
   "exclude": [
     "node_modules", 
     "dist", 
-    "src/generated/client/runtime" // <--- ONLY exclude the runtime logic
   ]
 }
