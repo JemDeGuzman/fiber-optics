@@ -12,7 +12,7 @@
     "prisma:studio": "prisma studio",
     "test": "echo \"No test specified\" && exit 0",
     "lint": "echo \"No lint specified\" && exit 0",
-    "railway-build": "pnpm prisma:generate && pnpm build",
+    "railway-build": "prisma generate --schema=./prisma/schema.prisma && tsc -p tsconfig.json",
     "jest-test": "jest",
     "jest-test:watch": "jest --watch"
   },
