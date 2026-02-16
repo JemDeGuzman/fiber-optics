@@ -12,6 +12,10 @@
     "checkJs": false,          // <--- IMPORTANT: Don't let TS throw errors on Prisma's code
     "types": ["node"]
   },
-  "include": ["src/**/*"],     // <--- UPDATED: Recursively include everything in src
-  "exclude": ["node_modules", "dist", "src/generated"]
+  "include": ["src/**/*"],
+  "exclude": [
+    "node_modules", 
+    "dist", 
+    "src/generated/client/runtime" // <--- ONLY exclude the runtime logic
+  ]
 }
