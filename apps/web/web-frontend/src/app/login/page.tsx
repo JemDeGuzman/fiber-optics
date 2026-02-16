@@ -6,7 +6,7 @@ import SignupModal from "@/components/SignupModal";
 import Image from "next/image";
 
 // Environment variable for API base URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://backend-production-4bae.up.railway.app:4000";
 
 export default function Login(): React.JSX.Element {
   const router = useRouter();

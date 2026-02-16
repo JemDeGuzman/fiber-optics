@@ -19,7 +19,7 @@ interface BatchStats {
   ratio: Record<string, number>;
 }
 
-const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const API = process.env.NEXT_PUBLIC_API_URL ?? "http://backend-production-4bae.up.railway.app:4000";
 
 /* ===========================
    GLOBAL STYLES / RESET
