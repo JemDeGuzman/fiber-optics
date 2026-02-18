@@ -9,7 +9,7 @@ import devicesRoutes from "./routes/devices";
 const app = express();
 
 app.use(cors({
-  origin: 'https://your-frontend-domain.up.railway.app', // OR process.env.FRONTEND_URL
+  origin: 'https://backend-production-4bae.up.railway.app', // OR process.env.FRONTEND_URL
   credentials: true
 }));
 app.use(express.json());
