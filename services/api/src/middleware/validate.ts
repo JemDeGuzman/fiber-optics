@@ -1,4 +1,5 @@
-import { ZodObject, ZodError, z } from "zod";
+// services/api/src/middleware/validate.ts
+import { ZodObject, ZodError } from "zod";
 import { Request, Response, NextFunction } from "express";
 
 export const validateBody = (schema: ZodObject<any>) => (req: Request, res: Response, next: NextFunction) => {
@@ -7,6 +8,14 @@ export const validateBody = (schema: ZodObject<any>) => (req: Request, res: Resp
     next();
   } catch (err) {
     const zErr = err as ZodError;
-    return res.status(400).json({ error: "Validation failed", details: z.treeifyError(zErr) });
+    
+    // FORCE CORS headers here so the browser lets us see the 400 error
+    res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+    res.header("Access-Control-Allow-Credentials", "true");
+
+    return res.status(400).json({ 
+      error: "Validation failed", 
+      details: zErr.issues // Simplified for debugging
+    });
   }
 };
