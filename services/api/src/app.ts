@@ -1,4 +1,4 @@
-﻿import express from "express";
+﻿import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
 import path from "path"
 import authRoutes from "./routes/auth";
@@ -9,10 +9,15 @@ import devicesRoutes from "./routes/devices";
 const app = express();
 
 app.use(cors({
-  origin: true, // This reflects the request origin, allowing any domain to connect
+  origin: (origin, callback) => {
+    // This allows all origins while you debug. 
+    // You can replace with your specific frontend URL later.
+    callback(null, true);
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200 // Some legacy browsers/environments need this
 }));
 app.use(express.json());
 
@@ -57,5 +62,19 @@ function listApiRoutes(appInstance: express.Application) {
 // listApiRoutes(app);
 
 app.get('/health', (_req, res) => res.status(200).json({status: 'ok'}));
+
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+  console.error("Uncaught Error:", err);
+  
+  // Explicitly set CORS headers for the error response
+  res.header("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.header("Access-Control-Allow-Credentials", "true");
+
+  const status = err.status || 500;
+  res.status(status).json({
+    error: err.message || "Internal Server Error",
+    details: err.errors || null
+  });
+});
 
 export default app;
