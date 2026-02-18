@@ -9,8 +9,10 @@ import devicesRoutes from "./routes/devices";
 const app = express();
 
 app.use(cors({
-  origin: 'https://backend-production-4bae.up.railway.app', // OR process.env.FRONTEND_URL
-  credentials: true
+  origin: true, // This reflects the request origin, allowing any domain to connect
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
