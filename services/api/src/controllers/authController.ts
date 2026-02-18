@@ -62,6 +62,7 @@ export async function getCurrentUser(req: AuthenticatedRequest, res: Response) {
 }
 
 export async function signup(req: Request, res: Response) {
+  console.log("DEBUG: Signup hit with email:", req.body.email); // ADD THIS
   try {
     const { email, password, name } = req.body as { email?: string; password?: string; name?: string };
     if (!email || !password) return res.status(400).json({ error: "Missing fields" });
@@ -78,9 +79,10 @@ export async function signup(req: Request, res: Response) {
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
 
     res.json({ token, user: user as SafeUser });
-  } catch (err) {
+  } catch (err: any) {
     console.error("signup error:", err);
-    res.status(500).json({ error: "Internal server error" });
+    // Temporarily return the real error message for debugging
+    res.status(500).json({ error: "Internal server error", debug: err.message });
   }
 }
 
