@@ -205,9 +205,9 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
             <Th><Checkbox type="checkbox" checked={allSelected} onChange={toggleSelectAllOnPage} /></Th>
             <Th onClick={() => onSort('id')} style={{ cursor: 'pointer' }}>ID {renderSortIcon('id')}</Th>
             <Th onClick={() => onSort('classification')} style={{ cursor: 'pointer' }}>Classification {renderSortIcon('classification')} </Th>
-            <Th onClick={() => onSort('luster_value')} style={{cursor:'pointer'}}>Luster</Th>
-            <Th onClick={() => onSort('roughness')} style={{cursor:'pointer'}}>Roughness</Th>
-            <Th onClick={() => onSort('tensile_strength')} style={{cursor:'pointer'}}>Tensile</Th>
+            <Th onClick={() => onSort('luster_value')} style={{cursor:'pointer'}}>Luster {renderSortIcon('luster_value')} </Th>
+            <Th onClick={() => onSort('roughness')} style={{cursor:'pointer'}}>Roughness {renderSortIcon('roughness')}</Th>
+            <Th onClick={() => onSort('tensile_strength')} style={{cursor:'pointer'}}>Tensile {renderSortIcon('tensile_strength')}</Th>
             <Th>Image</Th>
             <Th onClick={() => onSort('createdAt')} style={{ cursor: 'pointer' }}>Created {renderSortIcon('createdAt')}</Th>
             <Th></Th>
