@@ -17,7 +17,8 @@ type MulterArrayRequest = Omit<Request, "files"> & {
 };
 
 /* ------------------------ Upload config ------------------------ */
-const UPLOAD_DIR = path.resolve(__dirname, "../../../uploads");
+/*const UPLOAD_DIR = path.resolve(__dirname, "../../../uploads"); local UPLOAD_DIR*/
+const UPLOAD_DIR = "/app/services/api/uploads";
 //console.log("MULTER UPLOAD_DIR ->", UPLOAD_DIR);
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
