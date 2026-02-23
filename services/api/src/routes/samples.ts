@@ -170,6 +170,25 @@ router.post("/upload", upload.any(), async (req: Request, res: Response) => {
   }
 });
 
+router.get("/browse", async (req, res) => {
+  try {
+    const files = fs.readdirSync(UPLOAD_DIR);
+    const html = `
+      <html>
+        <body>
+          <h1>Volume File Browser</h1>
+          <ul>
+            ${files.map(file => `<li><a href="/uploads/${file}" target="_blank">${file}</a></li>`).join('')}
+          </ul>
+        </body>
+      </html>
+    `;
+    res.send(html);
+  } catch (err) {
+    res.status(500).send("Could not read volume");
+  }
+});
+
 /* ---------------------- existing sample routes ---------------------- */
 // PATCH /api/samples/:id
 router.patch("/:id", updateSample);
