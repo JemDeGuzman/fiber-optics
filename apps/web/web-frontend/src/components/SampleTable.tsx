@@ -223,14 +223,20 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
     onSelectionChange?.(next);
   };
 
-  const getImageTypeLabel = (fileName: string): string => {
+const getImageTypeLabel = (fileName: string | undefined | null): string => {
+  // 1. Check if fileName exists at all
+  if (!fileName) return "Capture"; 
+
+  // 2. Now it's safe to use toLowerCase
   const name = fileName.toLowerCase();
-    if (name.includes("sample")) return "Sample Image";
-    if (name.includes("luster")) return "Luster Map";
-    if (name.includes("roughness")) return "Roughness Proxy";
-    if (name.includes("tensile")) return "Tensile Map";
-    return "Capture"; // Fallback
-  };
+  
+  if (name.includes("sample")) return "Sample Image";
+  if (name.includes("luster")) return "Luster Map";
+  if (name.includes("roughness")) return "Roughness Proxy";
+  if (name.includes("tensile")) return "Tensile Map";
+  
+  return "Capture"; 
+};
 
   const allSelected = useMemo(
     () => samples.length > 0 && samples.every(s => isSelected(s.id)),
