@@ -115,9 +115,10 @@ router.post("/upload", upload.any(), async (req: Request, res: Response) => {
     const host = req.get("host"); // e.g. localhost:4000
     
     // Map each file to its URL and original filename
+    // Change this:
     const imageData = uploadedFiles.map(file => ({
       fileName: file.originalname,
-      imageUrl: `${protocol}://${host}/uploads/${file.filename}`,
+      imageUrl: file.filename, // Store ONLY the filename, not the full URL
     }));
     
     console.log("[UPLOAD] Image data prepared:", imageData.length, "images");

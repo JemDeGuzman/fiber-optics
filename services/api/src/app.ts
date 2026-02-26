@@ -24,6 +24,8 @@ app.use(express.json());
 // simple health / root route for manual checks
 app.get("/", (_req, res) => res.send("API is running!"));
 
+app.use("/uploads", express.static("/app/services/api/uploads"));
+
 // mount API routes
 app.use("/api/auth", authRoutes);
 

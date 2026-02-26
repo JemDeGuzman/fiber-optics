@@ -246,23 +246,18 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
               {/* IMAGE COLUMN - UPDATED LOGIC */}
               <Td>
                 {(() => {
-                  // 1. Ensure s.images exists and is an array before searching
                   const imagesArray = Array.isArray(s.images) ? s.images : [];
                   
-                  // 2. Find the image where fileName is a string AND starts with 'sample'
+                  // Find the capture you want
                   const sampleImage = imagesArray.find(img => 
                     typeof img.fileName === "string" && img.fileName.toLowerCase().startsWith("sample")
                   );
-                  
-                  // 3. Select the best path available
-                  const targetPath = sampleImage?.fileName || s.image_capture;
 
-                  if (!targetPath) return "No Image";
+                  // CRITICAL FIX: Use imageUrl (the full path) or the specific image_capture string
+                  // Do NOT use fileName, as that is the user's original filename, not the disk filename.
+                  const finalUrl = sampleImage?.imageUrl || s.image_capture;
 
-                  // 4. Construct URL: If it's a full URL already, leave it. If it's just a filename, prepend API.
-                  const finalUrl = targetPath.startsWith("http") 
-                    ? targetPath 
-                    : `${API}/uploads/${targetPath}`;
+                  if (!finalUrl) return "No Image";
 
                   return (
                     <Button 

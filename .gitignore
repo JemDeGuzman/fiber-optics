@@ -77,6 +77,7 @@ Desktop.ini
 /services/api/.env
 /services/api/.env.*
 !/services/api/.env.example
+/services/uploads/labeled_dataset/
 
 /services/frontend/node_modules/
 /services/frontend/.next/
@@ -91,3 +92,5 @@ Desktop.ini
 *.key
 *.crt
 *.cert
+services/uploads/labeled_dataset-2-24-2026.zip
+services/uploads/dataset-2-24-2026.zip
