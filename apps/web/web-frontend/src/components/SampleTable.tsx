@@ -81,11 +81,15 @@ const CaptureImage = styled.img`
 `;
 
 const ImageLabel = styled.span`
-  font-size: 0.85rem;
-  color: #8fb3a9;
-  font-weight: 500;
-  text-align: center;
-  word-break: break-all; /* Prevents long names from breaking the layout */
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1f1f1f;
+  background-color: #8fb3a9; /* Your theme's accent color */
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  margin-top: 4px;
 `;
 
 const TableEl = styled.table`
@@ -217,6 +221,15 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
       ? selectedIds.filter(i => i !== id)
       : [...selectedIds, id];
     onSelectionChange?.(next);
+  };
+
+  const getImageTypeLabel = (fileName: string): string => {
+  const name = fileName.toLowerCase();
+    if (name.includes("sample")) return "Sample Image";
+    if (name.includes("luster")) return "Luster Map";
+    if (name.includes("roughness")) return "Roughness Proxy";
+    if (name.includes("tensile")) return "Tensile Map";
+    return "Capture"; // Fallback
   };
 
   const allSelected = useMemo(
@@ -357,18 +370,18 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
         <ModalBackdrop onClick={() => setSelectedSample(null)}>
           <GalleryGrid onClick={(e) => e.stopPropagation()}>
             <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <h3 style={{ color: '#EBE1BD', margin: 0 }}>Sample #{selectedSample.id} Captures</h3>
+              <h3 style={{ color: '#EBE1BD', margin: 0 }}>Analysis Results - Sample #{selectedSample.id}</h3>
               <Button onClick={() => setSelectedSample(null)}>✕</Button>
             </div>
 
             {selectedSample.images?.map((img) => (
               <GalleryItem key={img.id}>
-                {/* Constructing the URL: API + /uploads/ + filename from DB */}
                 <CaptureImage 
                   src={`${API}/uploads/${img.imageUrl}`} 
                   alt={img.fileName} 
                 />
-                <ImageLabel>{img.fileName}</ImageLabel>
+                {/* Apply the label logic here */}
+                <ImageLabel>{getImageTypeLabel(img.fileName)}</ImageLabel>
               </GalleryItem>
             ))}
 
