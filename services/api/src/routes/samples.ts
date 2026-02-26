@@ -174,19 +174,25 @@ router.post("/upload", upload.any(), async (req: Request, res: Response) => {
 router.get("/browse", async (req, res) => {
   try {
     const files = fs.readdirSync(UPLOAD_DIR);
+    // Use a relative path to the root so it works regardless of the API prefix
     const html = `
       <html>
-        <body>
+        <head><title>Volume Browser</title></head>
+        <body style="background: #121212; color: #eee; font-family: sans-serif; padding: 20px;">
           <h1>Volume File Browser</h1>
+          <p>Location: ${UPLOAD_DIR}</p>
           <ul>
-            ${files.map(file => `<li><a href="/uploads/${file}" target="_blank">${file}</a></li>`).join('')}
+            ${files.map(file => `
+              <li style="margin: 10px 0;">
+                <a href="/uploads/${file}" target="_blank" style="color: #8fb3a9;">${file}</a>
+              </li>`).join('')}
           </ul>
         </body>
       </html>
     `;
     res.send(html);
   } catch (err) {
-    res.status(500).send("Could not read volume");
+    res.status(500).send("Could not read volume. Path: " + UPLOAD_DIR);
   }
 });
 
