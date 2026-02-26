@@ -39,6 +39,43 @@ const TableContainer = styled.div`
   overflow-x: visible;
 `;
 
+const ModalBackdrop = styled.div`
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+`;
+
+const GalleryGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2x2 grid for your 4 images */
+  gap: 15px;
+  background: #1f1f1f;
+  padding: 20px;
+  border-radius: 12px;
+  border: 1px solid #3A4946;
+  max-width: 800px;
+  width: 100%;
+`;
+
+const GalleryItem = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+`;
+
+const CaptureImage = styled.img`
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #444;
+`;
+
 const TableEl = styled.table`
   width: 100%;
   border-collapse: collapse;
@@ -160,7 +197,7 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
   const [edited, setEdited] = React.useState<Partial<SampleRow>>({});
   const [sortConfig, setSortConfig] = React.useState<{ key: keyof SampleRow, direction: 'asc' | 'desc' } | null>(null);
   const [viewingSample, setViewingSample] = React.useState<SampleRow | null>(null);
-
+  const [selectedSample, setSelectedSample] = React.useState<SampleRow | null>(null);
   const isSelected = (id: number) => selectedIds.includes(id);
 
   const toggleSelect = (id: number) => {
@@ -277,22 +314,15 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
                 ) : (s.tensile_strength !== null ? s.tensile_strength.toFixed(4) : "-")}
               </Td>
 
-              {/* IMAGE COLUMN - UPDATED FOR MODAL */}
+              {/* IMAGE COLUMN */}
               <Td>
-                {(() => {
-                  const hasImages = Array.isArray(s.images) && s.images.length > 0;
-                  
-                  if (!hasImages && !s.image_capture) return "No Image";
-
-                  return (
-                    <Button 
-                      small 
-                      onClick={() => setViewingSample(s)}
-                    >
-                      View Images ({s.images?.length || 1})
-                    </Button>
-                  );
-                })()}
+                <Button 
+                  small 
+                  onClick={() => setSelectedSample(s)}
+                  disabled={!s.images || s.images.length === 0}
+                >
+                  {s.images && s.images.length > 0 ? `View ${s.images.length} Captures` : "No Images"}
+                </Button>
               </Td>
 
               <Td>{new Date(s.createdAt).toLocaleString()}</Td>
@@ -311,33 +341,26 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
           ))}
         </tbody>
       </TableEl>
-      {viewingSample && (
-        <ModalOverlay onClick={() => setViewingSample(null)}>
-          <ModalContent onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <h2 style={{ color: '#EBE1BD', margin: 0 }}>Sample #{viewingSample.id} - All Captures</h2>
-              <Button onClick={() => setViewingSample(null)}>Close</Button>
+      {selectedSample && (
+        <ModalBackdrop onClick={() => setSelectedSample(null)}>
+          <GalleryGrid onClick={(e) => e.stopPropagation()}>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0 }}>Sample #{selectedSample.id} Captures</h3>
+              <Button onClick={() => setSelectedSample(null)}>✕ Close</Button>
             </div>
-            
-            <ImageGrid>
-              {/* Map through all images in the relation */}
-              {viewingSample.images && viewingSample.images.length > 0 ? (
-                viewingSample.images.map((img) => (
-                  <div key={img.id}>
-                    <PreviewImage src={img.imageUrl} alt={img.fileName} />
-                    <p style={{ fontSize: '0.8rem', color: '#8fb3a9', marginTop: '5px' }}>{img.fileName}</p>
-                  </div>
-                ))
-              ) : (
-                /* Fallback for old records using just image_capture */
-                <div>
-                  <PreviewImage src={viewingSample.image_capture || ''} alt="Capture" />
-                  <p style={{ fontSize: '0.8rem', color: '#8fb3a9' }}>Primary Capture</p>
-                </div>
-              )}
-            </ImageGrid>
-          </ModalContent>
-        </ModalOverlay>
+
+            {selectedSample.images?.map((img) => (
+              <GalleryItem key={img.id}>
+                <CaptureImage src={img.imageUrl} alt={img.fileName} />
+                <span style={{ fontSize: '0.75rem', color: '#8fb3a9' }}>{img.fileName}</span>
+              </GalleryItem>
+            ))}
+
+            {(!selectedSample.images || selectedSample.images.length === 0) && (
+              <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>No linked images found in ImageCapture table.</p>
+            )}
+          </GalleryGrid>
+        </ModalBackdrop>
       )}
     </TableContainer>
   );
