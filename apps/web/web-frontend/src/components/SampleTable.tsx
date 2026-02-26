@@ -65,31 +65,15 @@ const GalleryGrid = styled.div`
 const GalleryItem = styled.div`
   display: flex;
   flex-direction: column;
-  align-items: center; /* Center the image and label */
-  gap: 8px;
-  background: #262626;
-  padding: 10px;
-  border-radius: 8px;
-  border: 1px solid #333;
+  gap: 5px;
 `;
 
 const CaptureImage = styled.img`
   width: 100%;
-  aspect-ratio: 1 / 1; /* Keep them square for a neat grid */
+  aspect-ratio: 4/3;
   object-fit: cover;
   border-radius: 4px;
-`;
-
-const ImageLabel = styled.span`
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #1f1f1f;
-  background-color: #8fb3a9; /* Your theme's accent color */
-  padding: 4px 12px;
-  border-radius: 20px;
-  font-weight: 700;
-  margin-top: 4px;
+  border: 1px solid #444;
 `;
 
 const TableEl = styled.table`
@@ -222,21 +206,6 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
       : [...selectedIds, id];
     onSelectionChange?.(next);
   };
-
-const getImageTypeLabel = (fileName: string | undefined | null): string => {
-  // 1. Check if fileName exists at all
-  if (!fileName) return "Capture"; 
-
-  // 2. Now it's safe to use toLowerCase
-  const name = fileName.toLowerCase();
-  
-  if (name.includes("sample")) return "Sample Image";
-  if (name.includes("luster")) return "Luster Map";
-  if (name.includes("roughness")) return "Roughness Proxy";
-  if (name.includes("tensile")) return "Tensile Map";
-  
-  return "Capture"; 
-};
 
   const allSelected = useMemo(
     () => samples.length > 0 && samples.every(s => isSelected(s.id)),
@@ -375,26 +344,20 @@ const getImageTypeLabel = (fileName: string | undefined | null): string => {
       {selectedSample && (
         <ModalBackdrop onClick={() => setSelectedSample(null)}>
           <GalleryGrid onClick={(e) => e.stopPropagation()}>
-            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-              <h3 style={{ color: '#EBE1BD', margin: 0 }}>Analysis Results - Sample #{selectedSample.id}</h3>
-              <Button onClick={() => setSelectedSample(null)}>✕</Button>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ margin: 0 }}>Sample #{selectedSample.id} Captures</h3>
+              <Button onClick={() => setSelectedSample(null)}>✕ Close</Button>
             </div>
 
             {selectedSample.images?.map((img) => (
               <GalleryItem key={img.id}>
-                <CaptureImage 
-                  src={`${API}/uploads/${img.imageUrl}`} 
-                  alt={img.fileName} 
-                />
-                {/* Apply the label logic here */}
-                <ImageLabel>{getImageTypeLabel(img.fileName)}</ImageLabel>
+                <CaptureImage src={img.imageUrl} alt={img.fileName} />
+                <span style={{ fontSize: '0.75rem', color: '#8fb3a9' }}>{img.fileName}</span>
               </GalleryItem>
             ))}
 
             {(!selectedSample.images || selectedSample.images.length === 0) && (
-              <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#666' }}>
-                No images found for this sample.
-              </p>
+              <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>No linked images found in ImageCapture table.</p>
             )}
           </GalleryGrid>
         </ModalBackdrop>
