@@ -65,15 +65,27 @@ const GalleryGrid = styled.div`
 const GalleryItem = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  align-items: center; /* Center the image and label */
+  gap: 8px;
+  background: #262626;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #333;
 `;
 
 const CaptureImage = styled.img`
   width: 100%;
-  aspect-ratio: 4/3;
+  aspect-ratio: 1 / 1; /* Keep them square for a neat grid */
   object-fit: cover;
   border-radius: 4px;
-  border: 1px solid #444;
+`;
+
+const ImageLabel = styled.span`
+  font-size: 0.85rem;
+  color: #8fb3a9;
+  font-weight: 500;
+  text-align: center;
+  word-break: break-all; /* Prevents long names from breaking the layout */
 `;
 
 const TableEl = styled.table`
@@ -344,20 +356,26 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
       {selectedSample && (
         <ModalBackdrop onClick={() => setSelectedSample(null)}>
           <GalleryGrid onClick={(e) => e.stopPropagation()}>
-            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>Sample #{selectedSample.id} Captures</h3>
-              <Button onClick={() => setSelectedSample(null)}>✕ Close</Button>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <h3 style={{ color: '#EBE1BD', margin: 0 }}>Sample #{selectedSample.id} Captures</h3>
+              <Button onClick={() => setSelectedSample(null)}>✕</Button>
             </div>
 
             {selectedSample.images?.map((img) => (
               <GalleryItem key={img.id}>
-                <CaptureImage src={img.imageUrl} alt={img.fileName} />
-                <span style={{ fontSize: '0.75rem', color: '#8fb3a9' }}>{img.fileName}</span>
+                {/* Constructing the URL: API + /uploads/ + filename from DB */}
+                <CaptureImage 
+                  src={`${API}/uploads/${img.imageUrl}`} 
+                  alt={img.fileName} 
+                />
+                <ImageLabel>{img.fileName}</ImageLabel>
               </GalleryItem>
             ))}
 
             {(!selectedSample.images || selectedSample.images.length === 0) && (
-              <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>No linked images found in ImageCapture table.</p>
+              <p style={{ gridColumn: '1 / -1', textAlign: 'center', color: '#666' }}>
+                No images found for this sample.
+              </p>
             )}
           </GalleryGrid>
         </ModalBackdrop>
