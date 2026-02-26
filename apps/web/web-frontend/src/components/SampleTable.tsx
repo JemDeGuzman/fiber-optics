@@ -58,6 +58,39 @@ const Th = styled.th`
   z-index: 10;
 `;
 
+const ModalOverlay = styled.div`
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+`;
+
+const ModalContent = styled.div`
+  background: #1f1f1f;
+  padding: 20px;
+  border-radius: 12px;
+  max-width: 90vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  border: 1px solid #3A4946;
+`;
+
+const ImageGrid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 15px;
+`;
+
+const PreviewImage = styled.img`
+  width: 100%;
+  border-radius: 8px;
+  border: 1px solid #555;
+`;
+
 const Td = styled.td`
   padding: 8px;
   border-bottom: 1px solid #333;
@@ -126,6 +159,7 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
   const [editingId, setEditingId] = React.useState<number | null>(null);
   const [edited, setEdited] = React.useState<Partial<SampleRow>>({});
   const [sortConfig, setSortConfig] = React.useState<{ key: keyof SampleRow, direction: 'asc' | 'desc' } | null>(null);
+  const [viewingSample, setViewingSample] = React.useState<SampleRow | null>(null);
 
   const isSelected = (id: number) => selectedIds.includes(id);
 
@@ -243,32 +277,19 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
                 ) : (s.tensile_strength !== null ? s.tensile_strength.toFixed(4) : "-")}
               </Td>
 
-              {/* IMAGE COLUMN - UPDATED LOGIC */}
+              {/* IMAGE COLUMN - UPDATED FOR MODAL */}
               <Td>
                 {(() => {
-                  const imagesArray = Array.isArray(s.images) ? s.images : [];
+                  const hasImages = Array.isArray(s.images) && s.images.length > 0;
                   
-                  // Find the capture you want
-                  const sampleImage = imagesArray.find(img => 
-                    typeof img.fileName === "string" && img.fileName.toLowerCase().startsWith("sample")
-                  );
-
-                  // CRITICAL FIX: Use imageUrl (the full path) or the specific image_capture string
-                  // Do NOT use fileName, as that is the user's original filename, not the disk filename.
-                  const finalUrl = sampleImage?.imageUrl || s.image_capture;
-
-                  if (!finalUrl) return "No Image";
+                  if (!hasImages && !s.image_capture) return "No Image";
 
                   return (
                     <Button 
-                      as="a" 
-                      href={finalUrl} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
                       small 
-                      style={{ textDecoration: 'none' }}
+                      onClick={() => setViewingSample(s)}
                     >
-                      Open Image
+                      View Images ({s.images?.length || 1})
                     </Button>
                   );
                 })()}
@@ -290,6 +311,34 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
           ))}
         </tbody>
       </TableEl>
+      {viewingSample && (
+        <ModalOverlay onClick={() => setViewingSample(null)}>
+          <ModalContent onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <h2 style={{ color: '#EBE1BD', margin: 0 }}>Sample #{viewingSample.id} - All Captures</h2>
+              <Button onClick={() => setViewingSample(null)}>Close</Button>
+            </div>
+            
+            <ImageGrid>
+              {/* Map through all images in the relation */}
+              {viewingSample.images && viewingSample.images.length > 0 ? (
+                viewingSample.images.map((img) => (
+                  <div key={img.id}>
+                    <PreviewImage src={img.imageUrl} alt={img.fileName} />
+                    <p style={{ fontSize: '0.8rem', color: '#8fb3a9', marginTop: '5px' }}>{img.fileName}</p>
+                  </div>
+                ))
+              ) : (
+                /* Fallback for old records using just image_capture */
+                <div>
+                  <PreviewImage src={viewingSample.image_capture || ''} alt="Capture" />
+                  <p style={{ fontSize: '0.8rem', color: '#8fb3a9' }}>Primary Capture</p>
+                </div>
+              )}
+            </ImageGrid>
+          </ModalContent>
+        </ModalOverlay>
+      )}
     </TableContainer>
   );
 }
