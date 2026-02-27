@@ -31,6 +31,13 @@ interface Props {
   onSort: (key: string) => void;
 }
 
+const STATIC_LABELS = [
+  "DoLPI-MECH Image",
+  "Luster Map",
+  "Roughness Proxy",
+  "Tensile Map"
+];
+
 /* ===========================
    STYLED COMPONENTS
 =========================== */
@@ -48,6 +55,18 @@ const ModalBackdrop = styled.div`
   justify-content: center;
   z-index: 1000;
   padding: 20px;
+`;
+
+const ImageLabel = styled.span`
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #1f1f1f;
+  background-color: #8fb3a9; /* Your theme's accent color */
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-weight: 700;
+  margin-top: 4px;
 `;
 
 const GalleryGrid = styled.div`
@@ -344,20 +363,26 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
       {selectedSample && (
         <ModalBackdrop onClick={() => setSelectedSample(null)}>
           <GalleryGrid onClick={(e) => e.stopPropagation()}>
-            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0 }}>Sample #{selectedSample.id} Captures</h3>
-              <Button onClick={() => setSelectedSample(null)}>✕ Close</Button>
+            <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+              <h3 style={{ color: '#EBE1BD', margin: 0 }}>Analysis Results - Sample #{selectedSample.id}</h3>
+              <Button onClick={() => setSelectedSample(null)}>✕</Button>
             </div>
 
-            {selectedSample.images?.map((img) => (
-              <GalleryItem key={img.id}>
-                <CaptureImage src={img.imageUrl} alt={img.fileName} />
-                <span style={{ fontSize: '0.75rem', color: '#8fb3a9' }}>{img.fileName}</span>
+            {selectedSample.images?.map((img, index) => (
+              <GalleryItem key={img.id || index}>
+                <CaptureImage 
+                  src={`${API}/uploads/${img.imageUrl}`} 
+                  alt={img.fileName || "Capture"} 
+                />
+                {/* We use the index (0, 1, 2, or 3) to pick the label */}
+                <ImageLabel>
+                  {STATIC_LABELS[index] || "Additional Capture"}
+                </ImageLabel>
               </GalleryItem>
             ))}
 
             {(!selectedSample.images || selectedSample.images.length === 0) && (
-              <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>No linked images found in ImageCapture table.</p>
+              <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>No images found.</p>
             )}
           </GalleryGrid>
         </ModalBackdrop>
