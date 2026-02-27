@@ -2,7 +2,7 @@
 import React, { useMemo } from "react";
 import styled from "styled-components";
 
-const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000";
+const API = "https://backend-production-4bae.up.railway.app";
 
 export interface SampleRow {
   id: number;
@@ -368,18 +368,26 @@ export default function SampleTable({samples, onUpdate, selectedIds = [], onSele
               <Button onClick={() => setSelectedSample(null)}>✕</Button>
             </div>
 
-            {selectedSample.images?.map((img, index) => (
-              <GalleryItem key={img.id || index}>
-                <CaptureImage 
-                  src={`${API}/uploads/${img.imageUrl}`} 
-                  alt={img.fileName || "Capture"} 
-                />
-                {/* We use the index (0, 1, 2, or 3) to pick the label */}
-                <ImageLabel>
-                  {STATIC_LABELS[index] || "Additional Capture"}
-                </ImageLabel>
-              </GalleryItem>
-            ))}
+            {selectedSample.images?.map((img, index) => {
+              // 1. Determine the source
+              // If img.imageUrl already has "http", use it as is. 
+              // Otherwise, build the path using your API variable.
+              const srcUrl = img.imageUrl.startsWith("http") 
+                ? img.imageUrl 
+                : `${API}/uploads/${img.imageUrl}`;
+
+              return (
+                <GalleryItem key={img.id || index}>
+                  <CaptureImage 
+                    src={srcUrl} 
+                    alt={img.fileName || "Capture"} 
+                  />
+                  <ImageLabel>
+                    {STATIC_LABELS[index] || "Additional Capture"}
+                  </ImageLabel>
+                </GalleryItem>
+              );
+            })}
 
             {(!selectedSample.images || selectedSample.images.length === 0) && (
               <p style={{ gridColumn: '1 / -1', textAlign: 'center' }}>No images found.</p>
