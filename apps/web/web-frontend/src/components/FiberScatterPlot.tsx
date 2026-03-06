@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, ZAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Label } from 'recharts';
 
 const COLORS = ['#7CB342', '#EBE1BD', '#B5B39C', '#4A90E2', '#D32F2F', '#9C27B0', '#F57C00'];
 
@@ -69,15 +69,37 @@ export const FiberComparisonScatter = ({ allSamples }: { allSamples: any[] }) =>
       {/* 4. THE CHART */}
       <div style={{ width: '100%', height: 400 }}>
         <ResponsiveContainer width="100%" height="100%">
-          <ScatterChart margin={{ top: 10, right: 20, bottom: 20, left: 0 }}>
+          <ScatterChart margin={{ top: 10, right: 20, bottom: 30, left: 10 }}> {/* Increased margins for labels */}
             <CartesianGrid stroke="#3A4946" strokeDasharray="3 3" />
-            <XAxis type="number" dataKey="x" name="Luster" stroke="#888" fontSize={12} />
-            <YAxis type="number" dataKey="y" name="Tensile" stroke="#888" fontSize={12} unit="N" />
+            
+            <XAxis type="number" dataKey="x" name="Luster" stroke="#888" fontSize={12}>
+                {/* 👈 Added X-Axis Label */}
+                <Label 
+                  value="Luster (AI Map Unit)" 
+                  offset={0} 
+                  position="insideBottom" 
+                  style={{ textAnchor: 'middle', fill: '#888', fontSize: '12px', fontWeight: 'bold', transform: 'translateY(20px)'}} 
+                />
+            </XAxis>
+
+            <YAxis type="number" dataKey="y" name="Tensile" stroke="#888" fontSize={12} unit="N">
+                {/* 👈 Added Y-Axis Label */}
+                <Label 
+                  value="Tensile Strength (Newton N)" 
+                  angle={-90} 
+                  position="insideLeft" 
+                  style={{ textAnchor: 'middle', fill: '#888', fontSize: '12px', fontWeight: 'bold' }} 
+                />
+            </YAxis>
+
             <ZAxis type="number" dataKey="z" range={[50, 400]} name="Roughness" />
+            
             <Tooltip 
-              cursor={{ strokeDasharray: '3 3' }} 
+              cursor={{ strokeDasharray: '3 3' }}
               contentStyle={{ backgroundColor: "#1f1f1f", border: "1px solid #3A4946", borderRadius: '8px' }}
+              itemStyle={{ color: "#FFFFFF" }} 
             />
+            
             <Legend verticalAlign="top" align="right" height={36} />
             
             {/* Render only visible categories */}
