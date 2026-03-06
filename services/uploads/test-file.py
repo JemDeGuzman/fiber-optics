@@ -5,98 +5,87 @@ from urllib.parse import urlparse
 from sklearn.model_selection import train_test_split
 
 # --- 1. Configuration ---
-csv_images = 'db_export.csv'
-csv_samples = 'db_export_2.csv'
-source_folder = '../uploads'
+csv_batch = 'batch_16_samples.csv' 
+source_folder = '../uploads'        
 output_base = './labeled_dataset'
 TRAIN_RATIO = 0.8 
 
-# Extensions that are safe to delete during cleanup
+CATEGORIES = ['Abaca', 'Daratex', 'False', 'Mixed']
+# These must match the prefixes in your 'fileName' column
+SUB_FOLDERS = ['luster_map', 'roughness_proxy', 'sample', 'tensile_map']
 IMAGE_EXTENSIONS = ('.jpg', '.jpeg', '.png', '.bmp', '.webp')
 
-def organize_split_and_protected_cleanup():
-    # Load Data
-    if not os.path.exists(csv_images) or not os.path.exists(csv_samples):
-        print("Error: CSV files missing.")
+def organize_batch_16_by_timestamp():
+    if not os.path.exists(csv_batch):
+        print(f"Error: {csv_batch} not found.")
         return
 
-    df_images = pd.read_csv(csv_images, header=None)
-    df_samples = pd.read_csv(csv_samples, header=None)
-
-    # Column Mapping
-    df_images = df_images.rename(columns={1: 'sampleId', 2: 'url', 4: 'target_name'})
-    df_samples = df_samples.rename(columns={0: 'id', 3: 'classification'})
-
-    # --- 2. Perform the Split ---
-    unique_ids = df_samples['id'].unique()
-    train_ids, val_ids = train_test_split(unique_ids, train_size=TRAIN_RATIO, random_state=42)
+    # Load CSV with headers (since your CSV has id, sampleId, etc.)
+    df = pd.read_csv(csv_batch)
     
-    split_map = {id: 'train' for id in train_ids}
-    split_map.update({id: 'val' for id in val_ids})
+    # 2. Setup Directory Structure
+    for split in ['train', 'val']:
+        for sub in SUB_FOLDERS:
+            os.makedirs(os.path.join(output_base, split, 'Mixed', sub), exist_ok=True)
 
-    merged_df = pd.merge(df_images, df_samples, left_on='sampleId', right_on='id')
+    # 3. Split by Timestamps (sampleId)
+    unique_timestamps = df['sampleId'].unique()
+    train_ts, val_ts = train_test_split(unique_timestamps, train_size=TRAIN_RATIO, random_state=42)
+    
+    split_map = {ts: 'train' for ts in train_ts}
+    split_map.update({ts: 'val' for ts in val_ts})
 
-    print(f"Total logical samples: {len(unique_ids)}")
-    print(f"Processing {len(merged_df)} files...")
+    print(f"Total Unique Samples: {len(unique_timestamps)}")
 
     success_count = 0
     missing_count = 0
 
-    # --- 3. Process and MOVE ---
-    for _, row in merged_df.iterrows():
+    # 4. Process Rows using exact DB column names
+    for _, row in df.iterrows():
         try:
-            sample_id = row['sampleId']
-            split_folder = split_map.get(sample_id, 'val') 
-            classification = str(row['classification']).strip()
+            # Using your DB column names: sampleId, imageUrl, fileName
+            ts = row['sampleId']
+            split = split_map.get(ts, 'val')
+            file_name_val = str(row['fileName'])
             
-            if not classification or classification == 'nan':
-                classification = "Unlabeled"
-
-            img_type = str(row['target_name']).split('-')[0]
-            original_filename = os.path.basename(urlparse(str(row['url'])).path)
+            # Identify subfolder (e.g., 'luster_map' from 'luster_map-123.jpg')
+            img_type = file_name_val.split('-')[0]
             
-            target_dir = os.path.join(output_base, split_folder, classification, img_type)
-            os.makedirs(target_dir, exist_ok=True)
+            if img_type not in SUB_FOLDERS:
+                continue
 
+            # Get the raw filename from the URL to find it in ../uploads
+            original_filename = os.path.basename(urlparse(str(row['imageUrl'])).path)
+            
             source_path = os.path.join(source_folder, original_filename)
-            target_path = os.path.join(target_dir, str(row['target_name']))
+            target_path = os.path.join(output_base, split, 'Mixed', img_type, file_name_val)
 
             if os.path.exists(source_path):
                 shutil.move(source_path, target_path)
+                success_count += 1
+            elif os.path.exists(target_path):
+                # Already moved in a previous run
                 success_count += 1
             else:
                 missing_count += 1
                 
         except Exception as e:
-            print(f"Error at sample {row.get('sampleId')}: {e}")
+            print(f"Error at timestamp {row.get('sampleId')}: {e}")
 
-    # --- 4. Protected Cleanup ---
-    print("\nStarting PROTECTED cleanup (images only)...")
-    remaining_files = os.listdir(source_folder)
-    deleted_leftovers = 0
-    skipped_scripts = 0
-    
-    for f in remaining_files:
-        file_path = os.path.join(source_folder, f)
-        if os.path.isfile(file_path):
-            # Only delete if it's an image file
-            if f.lower().endswith(IMAGE_EXTENSIONS):
-                try:
-                    os.remove(file_path)
-                    deleted_leftovers += 1
-                except Exception as e:
-                    print(f"Could not delete {f}: {e}")
-            else:
-                # Log that we are skipping non-image files (like .py or .js)
-                skipped_scripts += 1
+    # 5. Cleanup Leftover Images
+    print("\nCleaning up source folder...")
+    deleted = 0
+    for f in os.listdir(source_folder):
+        f_path = os.path.join(source_folder, f)
+        if os.path.isfile(f_path) and f.lower().endswith(IMAGE_EXTENSIONS):
+            os.remove(f_path)
+            deleted += 1
 
     print("-" * 30)
     print(f"Process Complete!")
-    print(f"Successfully moved: {success_count} files")
-    print(f"Unlabeled images deleted: {deleted_leftovers}")
-    print(f"Non-image files preserved: {skipped_scripts}")
+    print(f"Moved to Mixed: {success_count} files")
+    print(f"Missing: {missing_count}")
+    print(f"Leftovers Deleted: {deleted}")
 
 if __name__ == "__main__":
-    if os.path.exists(output_base):
-        shutil.rmtree(output_base)
-    organize_split_and_protected_cleanup()
+    organize_batch_16_by_timestamp()

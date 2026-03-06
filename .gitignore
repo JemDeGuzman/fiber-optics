@@ -84,7 +84,6 @@ Desktop.ini
 /services/frontend/.env
 /services/frontend/.env.*
 !/services/frontend/.env.example
-
 # ============================================
 # 🔒 Misc
 # ============================================
@@ -94,3 +93,4 @@ Desktop.ini
 *.cert
 services/uploads/labeled_dataset-2-24-2026.zip
 services/uploads/dataset-2-24-2026.zip
+Calibration_Project/
